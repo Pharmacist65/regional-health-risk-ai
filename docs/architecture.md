@@ -1,0 +1,101 @@
+# Architecture
+
+## System overview
+
+This project is intentionally small: local CSV files flow through connector stubs, validation checks, a pandas feature layer, a transparent scoring layer and a Streamlit dashboard. The default data is synthetic aggregate data, so the app can be reviewed publicly without patient privacy risk.
+
+```text
+Synthetic aggregate CSVs      Future aggregate open-data sources
+          |                         OpenPrescribing / OHID
+          |                                  |
+          v                                  v
+      data files <-------------- src.connectors stubs
+          |
+          v
+  src.validation schema and quality checks
+          |
+          v
+  src.risk_model feature builder
+          |
+          v
+ transparent composite scoring + tiers
+          |
+          v
+ Streamlit dashboard, charts and regional Markdown report export
+```
+
+## Components
+
+### Data layer
+
+The demo reads two CSV files from `data/`:
+
+- `sample_aggregate_prescribing.csv`: monthly area-level medication-class item and cost rates
+- `sample_public_health_indicators.csv`: synthetic area-level public-health context
+
+`src/data_pipeline.py` can regenerate the synthetic sample data. A production adaptation would replace this layer with validated aggregate open-data connectors and keep synthetic data as a fallback.
+
+`src/connectors.py` defines the future connector boundary:
+
+- `load_openprescribing_aggregate_prescribing()` for OpenPrescribing-style aggregate prescribing data
+- `load_ohid_fingertips_public_health_indicators()` for OHID/Fingertips-style public-health indicators
+
+Both functions currently return local synthetic CSV data by default. They do not make live API calls, require API keys or process patient-level records.
+
+### Validation layer
+
+`src/validation.py` checks aggregate input quality before data reaches the scoring pipeline. It validates required columns, parseable dates, missing area identifiers, duplicate rows, unknown medication classes, negative values and public-health indicator ranges.
+
+These checks are not clinical validation. They are data-quality guardrails for a portfolio analytics workflow.
+
+### Feature layer
+
+`src/risk_model.py` validates required columns and converts monthly medication-class rows into one row per area. Derived features include:
+
+- NSAID mean items per 1,000 population
+- months above the area NSAID median
+- cardiometabolic prescribing density
+- public-health context indicators joined by area
+
+### Scoring layer
+
+The composite score uses min-max scaled features with visible weights. This keeps the method explainable for portfolio review and avoids implying a validated clinical prediction model.
+
+The scoring layer also generates non-clinical prevention workflow prompts. These prompts are for aggregate planning discussions only.
+
+### Dashboard layer
+
+`app/streamlit_app.py` provides:
+
+- a top-level disclaimer panel
+- regional score ranking
+- map view
+- selected-area medication-class trend
+- score component breakdown
+- ranked intervention table
+- downloadable regional Markdown report with aggregate prescribing and public-health indicators
+
+## Testing
+
+Tests live in `tests/` and focus on pure connector, validation, data-processing and scoring functions. The GitHub Actions workflow installs the documented requirements and runs `pytest`.
+
+## Current stack
+
+- Python
+- pandas
+- Streamlit
+- Plotly
+- pytest
+
+## Future integration points
+
+- OpenPrescribing aggregate prescribing connector
+- OHID Fingertips public-health indicator connector
+- documented data-quality checks
+- data governance documentation
+- exportable regional reports in CSV or PDF
+- Streamlit Cloud deployment
+
+## Safety boundary
+
+The architecture must remain aggregate and public-health oriented. It must not ingest patient-level records, provide diagnosis, recommend treatment, provide dosing advice or claim NHS affiliation.

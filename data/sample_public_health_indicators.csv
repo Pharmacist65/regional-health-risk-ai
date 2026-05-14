@@ -1,0 +1,9 @@
+area_code,area_name,latitude,longitude,saturated_fat_proxy_index,deprivation_index,obesity_prevalence_pct,hypertension_prevalence_estimate_pct,diabetes_prevalence_estimate_pct
+E09000007,Camden,51.529,-0.1255,61.5,41.8,27.6,17.7,5.6
+E09000012,Hackney,51.545,-0.0553,73.1,55.4,30.6,17.3,8.8
+E09000030,Tower Hamlets,51.5099,-0.0059,71.9,65.2,26.5,19.7,8.8
+E09000025,Newham,51.5077,0.0469,82.0,59.1,33.8,20.4,10.2
+E08000003,Manchester,53.4808,-2.2426,73.2,67.3,30.2,20.9,9.5
+E08000025,Birmingham,52.4862,-1.8904,62.6,53.3,33.0,20.9,8.7
+E08000035,Leeds,53.8008,-1.5491,57.7,55.6,26.7,19.6,7.8
+E06000023,Bristol,51.4545,-2.5879,55.2,44.2,27.8,15.5,6.3
