@@ -79,6 +79,7 @@ data/
   sample_public_health_indicators.csv
 docs/
   architecture.md
+  bias_review_template.md
   data_governance.md
   deployment.md
   ethics_privacy.md
@@ -114,6 +115,7 @@ The app opens a Streamlit dashboard with a regional score ranking, map, selected
 
 - [Model card](docs/model_card.md) - intended use, non-intended use, assumptions, limitations and ethical boundaries
 - [Architecture](docs/architecture.md) - system flow and component overview
+- [Bias review template](docs/bias_review_template.md) - fairness and interpretation checklist for future real-data adaptation
 - [Data governance](docs/data_governance.md) - validation checks, data boundaries and real-data readiness
 - [Deployment](docs/deployment.md) - Streamlit Community Cloud deployment checklist
 - [Ethics and privacy](docs/ethics_privacy.md) - governance and privacy framing
@@ -158,6 +160,6 @@ It does:
 - [ ] Add live OpenPrescribing API integration examples
 - [ ] Add live OHID Fingertips indicator mapping
 - [x] Add model-card documentation
-- [ ] Add bias review template
+- [x] Add bias review template
 - [ ] Add Streamlit Cloud deployment
 - [x] Add selected-region Markdown report export
