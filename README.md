@@ -20,7 +20,8 @@ This project turns a public-health concept into a working software MVP:
 
 - aggregate medication usage analytics
 - transparent regional prevention-prioritisation scoring
-- dashboard-based area comparison and selected-area review
+- dashboard-based area comparison, map exploration and selected-area review
+- primary planning-signal mapping without disease-reporting claims
 - pharmacy and primary-care awareness workflow prompts
 - privacy-first design with no patient records
 
@@ -110,6 +111,7 @@ pytest
 ```
 
 The app opens a Streamlit dashboard with a regional score ranking, map, selected-area trend, score component breakdown and downloadable regional Markdown report.
+The map can be coloured by either risk tier or the primary aggregate planning signal. These signals are explanations of weighted score components, not reported disease counts.
 
 ## Documentation
 

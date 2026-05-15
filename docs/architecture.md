@@ -63,15 +63,18 @@ The composite score uses min-max scaled features with visible weights. This keep
 
 The scoring layer also generates non-clinical prevention workflow prompts. These prompts are for aggregate planning discussions only.
 
+The scoring layer exposes the largest weighted score component as a primary planning signal. This is used for map exploration and selected-area explanation. It is not a disease ranking or evidence of reported local diagnoses.
+
 ### Dashboard layer
 
 `app/streamlit_app.py` provides:
 
 - a top-level disclaimer panel
 - regional score ranking
-- map view
+- map view by risk tier or primary aggregate planning signal
 - selected-area medication-class trend
 - score component breakdown
+- public-health indicator snapshot for the selected area
 - ranked intervention table
 - downloadable regional Markdown report with aggregate prescribing and public-health indicators
 

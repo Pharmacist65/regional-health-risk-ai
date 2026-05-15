@@ -51,11 +51,12 @@ The application produces:
 
 - ranked area-level demo risk scores
 - score tiers for dashboard filtering
+- primary aggregate planning-signal labels for map exploration
 - an interpretable component breakdown
 - non-clinical prevention workflow prompts
 - a downloadable selected-region Markdown report with aggregate prescribing indicators, public-health indicators and non-clinical awareness categories
 
-Outputs are designed for planning conversations only. They do not identify patients or advise actions for individuals.
+Outputs are designed for planning conversations only. They do not identify patients, rank reported diseases or advise actions for individuals.
 
 ## Limitations
 

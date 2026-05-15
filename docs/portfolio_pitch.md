@@ -17,7 +17,7 @@ Population-level signals can help public-health, pharmacy and primary-care teams
 - Python package structure with small, testable modules.
 - pandas feature engineering over aggregate prescribing and public-health data.
 - Transparent composite scoring instead of black-box clinical prediction.
-- Streamlit dashboard UX for regional ranking, map exploration and selected-area review.
+- Streamlit dashboard UX for regional ranking, geographic planning-signal exploration and selected-area review.
 - Plotly visualisations for trends, score ranking and geographic context.
 - Non-clinical prevention workflow prompts with explicit safety boundaries.
 - Model-card, architecture and ethics documentation suitable for public GitHub review.
@@ -34,5 +34,6 @@ Population-level signals can help public-health, pharmacy and primary-care teams
 - Why the demo uses synthetic aggregate data by default.
 - How the risk score is computed and why it is intentionally interpretable.
 - How the dashboard avoids individual advice, diagnosis and treatment recommendations.
+- Why the map shows aggregate planning signals rather than reported disease rankings.
 - What governance would be required before adapting the idea to real aggregate open data.
 - How the project could be extended with OpenPrescribing or OHID Fingertips connectors while keeping safe fallbacks.

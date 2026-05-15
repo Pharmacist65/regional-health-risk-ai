@@ -78,6 +78,45 @@ SCORE_COMPONENTS = [
     },
 ]
 
+PLANNING_SIGNAL_BY_COMPONENT = {
+    "NSAID persistence signal": {
+        "primary_planning_signal": "NSAID safety awareness",
+        "planning_signal_group": "Aggregate prescribing signal",
+        "planning_signal_detail": (
+            "Largest weighted contribution comes from synthetic area-level NSAID item volume."
+        ),
+    },
+    "Cardiometabolic prescribing density": {
+        "primary_planning_signal": "Cardiometabolic medicines awareness",
+        "planning_signal_group": "Aggregate prescribing signal",
+        "planning_signal_detail": (
+            "Largest weighted contribution comes from combined aggregate antihypertensive, "
+            "lipid-lowering and antidiabetic item density."
+        ),
+    },
+    "Saturated-fat proxy": {
+        "primary_planning_signal": "Lifestyle context awareness",
+        "planning_signal_group": "Public-health context signal",
+        "planning_signal_detail": (
+            "Largest weighted contribution comes from the synthetic saturated-fat proxy index."
+        ),
+    },
+    "Deprivation index": {
+        "primary_planning_signal": "Access and communication context",
+        "planning_signal_group": "Public-health context signal",
+        "planning_signal_detail": (
+            "Largest weighted contribution comes from the synthetic deprivation proxy."
+        ),
+    },
+    "Obesity prevalence estimate": {
+        "primary_planning_signal": "Weight-related public-health context",
+        "planning_signal_group": "Public-health context signal",
+        "planning_signal_detail": (
+            "Largest weighted contribution comes from the synthetic aggregate obesity estimate."
+        ),
+    },
+}
+
 PUBLIC_HEALTH_REPORT_FIELDS = [
     ("saturated_fat_proxy_index", "Saturated-fat proxy index"),
     ("deprivation_index", "Deprivation index"),
@@ -358,6 +397,74 @@ def score_component_breakdown(
     return pd.DataFrame(rows)
 
 
+def planning_signal_profile(
+    row: pd.Series | dict,
+    weights: RiskWeights = DEFAULT_WEIGHTS,
+) -> dict[str, float | str]:
+    """Return the largest weighted aggregate planning signal for a scored area.
+
+    This is a dashboard explanation helper, not a diagnosis or disease ranking.
+    """
+    breakdown = score_component_breakdown(row, weights=weights)
+    if breakdown.empty:
+        return {
+            "primary_planning_signal": "Routine aggregate monitoring",
+            "planning_signal_group": "No dominant signal",
+            "planning_signal_detail": "No score component dominates the aggregate profile.",
+            "planning_signal_contribution": 0.0,
+        }
+
+    top_component = breakdown.sort_values(
+        ["score_contribution", "component"], ascending=[False, True]
+    ).iloc[0]
+    contribution = float(top_component["score_contribution"])
+
+    if contribution <= 0:
+        return {
+            "primary_planning_signal": "Routine aggregate monitoring",
+            "planning_signal_group": "No dominant signal",
+            "planning_signal_detail": "No score component dominates the aggregate profile.",
+            "planning_signal_contribution": 0.0,
+        }
+
+    component_name = str(top_component["component"])
+    signal = PLANNING_SIGNAL_BY_COMPONENT[component_name].copy()
+    signal["planning_signal_contribution"] = round(contribution, 1)
+    return signal
+
+
+def add_planning_signal_profiles(
+    scored_df: pd.DataFrame,
+    weights: RiskWeights = DEFAULT_WEIGHTS,
+) -> pd.DataFrame:
+    """Add primary planning-signal explanation columns to scored areas."""
+    output = scored_df.copy().reset_index(drop=True)
+    profiles = output.apply(
+        lambda row: planning_signal_profile(row, weights=weights), axis=1
+    ).apply(pd.Series)
+    return pd.concat([output, profiles.reset_index(drop=True)], axis=1)
+
+
+def public_health_indicator_snapshot(row: pd.Series | dict) -> pd.DataFrame:
+    """Return sorted synthetic public-health indicators for dashboard display."""
+    data = dict(row)
+    rows = []
+    for key, label in PUBLIC_HEALTH_REPORT_FIELDS:
+        value = pd.to_numeric(pd.Series([data.get(key)]), errors="coerce").iloc[0]
+        if pd.notna(value):
+            rows.append(
+                {
+                    "indicator": label,
+                    "synthetic_aggregate_value": round(float(value), 1),
+                    "safe_interpretation": "Aggregate planning context only",
+                }
+            )
+
+    return pd.DataFrame(rows).sort_values(
+        "synthetic_aggregate_value", ascending=False
+    ).reset_index(drop=True)
+
+
 def format_area_report_markdown(
     row: pd.Series | dict,
     suggested_actions: Iterable[str] | str,
@@ -461,12 +568,16 @@ def summarize_interventions(scored_df: pd.DataFrame) -> pd.DataFrame:
     output["suggested_actions"] = output.apply(
         lambda row: " | ".join(intervention_suggestions(row)), axis=1
     )
-    return output[
-        [
-            "area_code",
-            "area_name",
-            "risk_score",
-            "risk_tier",
-            "suggested_actions",
-        ]
+    columns = [
+        "area_code",
+        "area_name",
+        "risk_score",
+        "risk_tier",
     ]
+    columns.extend(
+        col
+        for col in ["primary_planning_signal", "planning_signal_group"]
+        if col in output.columns
+    )
+    columns.append("suggested_actions")
+    return output[columns]

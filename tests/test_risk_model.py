@@ -4,11 +4,14 @@ import pandas as pd
 
 from src.risk_model import (
     RiskWeights,
+    add_planning_signal_profiles,
     build_area_features,
     compute_risk_scores,
     format_area_report_markdown,
     intervention_suggestions,
     prevention_prioritisation_category,
+    planning_signal_profile,
+    public_health_indicator_snapshot,
     score_component_breakdown,
     summarize_area_prescribing,
     summarize_interventions,
@@ -31,6 +34,83 @@ def test_risk_pipeline_runs_on_demo_data():
     assert scored["risk_score"].between(0, 100).all()
     assert {"area_name", "risk_score", "risk_tier"}.issubset(scored.columns)
     assert "suggested_actions" in interventions.columns
+
+
+def test_planning_signal_profile_uses_largest_weighted_component():
+    profile = planning_signal_profile(
+        {
+            "nsaid_persistence_scaled": 0.2,
+            "cardiometabolic_rx_scaled": 1.0,
+            "saturated_fat_scaled": 0.1,
+            "deprivation_scaled": 0.1,
+            "obesity_scaled": 0.1,
+        }
+    )
+
+    assert profile["primary_planning_signal"] == "Cardiometabolic medicines awareness"
+    assert profile["planning_signal_group"] == "Aggregate prescribing signal"
+    assert profile["planning_signal_contribution"] == 25.0
+    assert "diagnosis" not in profile["planning_signal_detail"].lower()
+
+
+def test_planning_signal_profile_returns_routine_monitoring_for_zero_signal():
+    profile = planning_signal_profile(
+        {
+            "nsaid_persistence_scaled": 0,
+            "cardiometabolic_rx_scaled": 0,
+            "saturated_fat_scaled": 0,
+            "deprivation_scaled": 0,
+            "obesity_scaled": 0,
+        }
+    )
+
+    assert profile["primary_planning_signal"] == "Routine aggregate monitoring"
+    assert profile["planning_signal_contribution"] == 0.0
+
+
+def test_add_planning_signal_profiles_adds_dashboard_explanation_columns():
+    scored = pd.DataFrame(
+        [
+            {
+                "area_code": "A001",
+                "area_name": "Demo Area",
+                "risk_score": 25,
+                "risk_tier": "Moderate",
+                "nsaid_persistence_scaled": 1.0,
+                "cardiometabolic_rx_scaled": 0,
+                "saturated_fat_scaled": 0,
+                "deprivation_scaled": 0,
+                "obesity_scaled": 0,
+            }
+        ]
+    )
+
+    output = add_planning_signal_profiles(scored)
+
+    assert output.loc[0, "primary_planning_signal"] == "NSAID safety awareness"
+    assert output.loc[0, "planning_signal_group"] == "Aggregate prescribing signal"
+    assert output.loc[0, "planning_signal_contribution"] == 35.0
+
+
+def test_public_health_indicator_snapshot_is_sorted_and_non_clinical():
+    snapshot = public_health_indicator_snapshot(
+        {
+            "saturated_fat_proxy_index": 50,
+            "deprivation_index": 70,
+            "obesity_prevalence_pct": 30,
+            "hypertension_prevalence_estimate_pct": 20,
+            "diabetes_prevalence_estimate_pct": 8,
+        }
+    )
+
+    assert list(snapshot.columns) == [
+        "indicator",
+        "synthetic_aggregate_value",
+        "safe_interpretation",
+    ]
+    assert snapshot["synthetic_aggregate_value"].is_monotonic_decreasing
+    assert snapshot.iloc[0]["indicator"] == "Deprivation index"
+    assert set(snapshot["safe_interpretation"]) == {"Aggregate planning context only"}
 
 
 def test_score_component_breakdown_explains_score_contributions():
@@ -148,6 +228,26 @@ def test_intervention_suggestions_remain_non_clinical():
     unsafe_terms = ["diagnose", "dose", "prescribe", "supplement"]
     assert suggestions
     assert all(term not in joined for term in unsafe_terms)
+
+
+def test_summarize_interventions_preserves_planning_signal_columns():
+    scored = pd.DataFrame(
+        [
+            {
+                "area_code": "A001",
+                "area_name": "Demo Area",
+                "risk_score": 25,
+                "risk_tier": "Moderate",
+                "primary_planning_signal": "NSAID safety awareness",
+                "planning_signal_group": "Aggregate prescribing signal",
+            }
+        ]
+    )
+
+    summary = summarize_interventions(scored)
+
+    assert "primary_planning_signal" in summary.columns
+    assert "planning_signal_group" in summary.columns
 
 
 def test_risk_weights_must_sum_to_positive_value():

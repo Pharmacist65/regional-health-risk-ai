@@ -18,9 +18,11 @@ from src.connectors import (
     load_openprescribing_aggregate_prescribing,
 )
 from src.risk_model import (
+    add_planning_signal_profiles,
     build_area_features,
     compute_risk_scores,
     format_area_report_markdown,
+    public_health_indicator_snapshot,
     score_component_breakdown,
     summarize_area_prescribing,
     summarize_interventions,
@@ -46,7 +48,7 @@ st.set_page_config(
 
 prescribing_df, public_health_df = load_data()
 features_df = build_area_features(prescribing_df, public_health_df)
-scored_df = compute_risk_scores(features_df)
+scored_df = add_planning_signal_profiles(compute_risk_scores(features_df))
 intervention_df = summarize_interventions(scored_df)
 
 TIER_COLORS = {
@@ -56,6 +58,14 @@ TIER_COLORS = {
     "Very high": "#E76F51",
 }
 TIER_ORDER = ["Low", "Moderate", "High", "Very high"]
+SIGNAL_COLORS = {
+    "NSAID safety awareness": "#386641",
+    "Cardiometabolic medicines awareness": "#277DA1",
+    "Lifestyle context awareness": "#F8961E",
+    "Access and communication context": "#6D597A",
+    "Weight-related public-health context": "#BC4749",
+    "Routine aggregate monitoring": "#8D99AE",
+}
 
 st.title("Regional Preventive Health Analytics")
 st.markdown(
@@ -77,6 +87,14 @@ with st.container(border=True):
 st.sidebar.header("Demo controls")
 selected_tiers = st.sidebar.multiselect("Risk tiers", TIER_ORDER, default=TIER_ORDER)
 selected_area = st.sidebar.selectbox("Area profile", scored_df["area_name"].tolist())
+map_colour_mode = st.sidebar.radio(
+    "Map colour",
+    ["Risk tier", "Primary planning signal"],
+    help=(
+        "Primary planning signal is the largest weighted aggregate score component. "
+        "It is not a disease ranking."
+    ),
+)
 st.sidebar.markdown(
     "Synthetic demo data is loaded from `data/`. The included CSVs are not real NHS or patient records."
 )
@@ -126,39 +144,67 @@ with overview_tab:
             title="Composite prevention-prioritisation score",
         )
         fig.update_layout(yaxis={"categoryorder": "total ascending"}, legend_title_text="Tier")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with col2:
+        st.markdown("**Geographic planning signals**")
+        st.caption(
+            "Synthetic area coordinates and indicators only. Primary planning signal reflects "
+            "the largest weighted score component, not reported disease counts."
+        )
         map_df = overview_df.dropna(subset=["latitude", "longitude"])
-        fig = px.scatter_mapbox(
+        map_color_column = (
+            "risk_tier" if map_colour_mode == "Risk tier" else "primary_planning_signal"
+        )
+        map_color_map = TIER_COLORS if map_color_column == "risk_tier" else SIGNAL_COLORS
+        fig = px.scatter_map(
             map_df,
             lat="latitude",
             lon="longitude",
             size="risk_score",
-            color="risk_tier",
-            color_discrete_map=TIER_COLORS,
+            color=map_color_column,
+            color_discrete_map=map_color_map,
             hover_name="area_name",
-            hover_data=["risk_tier", "risk_score"],
+            hover_data={
+                "risk_tier": True,
+                "risk_score": ":.1f",
+                "primary_planning_signal": True,
+                "planning_signal_group": True,
+                "hypertension_prevalence_estimate_pct": ":.1f",
+                "diabetes_prevalence_estimate_pct": ":.1f",
+                "latitude": False,
+                "longitude": False,
+            },
             zoom=4.7,
             height=440,
+            labels={
+                "risk_tier": "Risk tier",
+                "risk_score": "Demo score",
+                "primary_planning_signal": "Primary planning signal",
+                "planning_signal_group": "Signal group",
+                "hypertension_prevalence_estimate_pct": "Hypertension estimate %",
+                "diabetes_prevalence_estimate_pct": "Diabetes estimate %",
+            },
         )
         fig.update_layout(
-            mapbox_style="open-street-map",
+            map_style="open-street-map",
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             legend_title_text="Tier",
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     st.subheader("Ranked prevention-prioritisation table")
     st.dataframe(
         intervention_df,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "area_code": "Area code",
             "area_name": "Area",
             "risk_score": st.column_config.NumberColumn("Demo score", format="%.1f"),
             "risk_tier": "Tier",
+            "primary_planning_signal": "Primary planning signal",
+            "planning_signal_group": "Signal group",
             "suggested_actions": "Non-clinical workflow prompts",
         },
     )
@@ -172,6 +218,11 @@ with area_tab:
     profile_cols[3].metric(
         "Cardiometabolic RX density", f"{area_row['cardiometabolic_rx_density']:.1f}"
     )
+    st.info(
+        f"Primary planning signal: **{area_row['primary_planning_signal']}**. "
+        "This is the largest weighted aggregate score component, not a diagnosis, "
+        "disease-reporting claim or individual recommendation."
+    )
 
     fig = px.line(
         area_rx,
@@ -182,7 +233,7 @@ with area_tab:
         labels={"items_per_1000": "Items per 1,000 population", "month": "Month"},
         title=f"Synthetic medication-class trend: {selected_area}",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     left_panel, right_panel = st.columns([1, 1])
     with left_panel:
@@ -190,7 +241,7 @@ with area_tab:
         breakdown_df = score_component_breakdown(area_row)
         st.dataframe(
             breakdown_df,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "component": "Component",
@@ -201,6 +252,23 @@ with area_tab:
                     "Score contribution", format="%.1f"
                 ),
                 "interpretation": "Interpretation",
+            },
+        )
+        st.subheader("Public-health indicator snapshot")
+        st.caption(
+            "Synthetic aggregate estimates for planning context only. These are not "
+            "reported disease counts or patient-level risk estimates."
+        )
+        st.dataframe(
+            public_health_indicator_snapshot(area_public_health),
+            width="stretch",
+            hide_index=True,
+            column_config={
+                "indicator": "Indicator",
+                "synthetic_aggregate_value": st.column_config.NumberColumn(
+                    "Synthetic aggregate value", format="%.1f"
+                ),
+                "safe_interpretation": "Safe interpretation",
             },
         )
 
@@ -230,7 +298,7 @@ with area_tab:
             data=report_markdown,
             file_name=f"{report_name}_regional_public_health_report.md",
             mime="text/markdown",
-            use_container_width=True,
+            width="stretch",
         )
         with st.expander("Preview Markdown report"):
             st.markdown(report_markdown)
