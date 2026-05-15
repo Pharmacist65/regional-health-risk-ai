@@ -6,6 +6,10 @@ A privacy-first portfolio proof-of-concept for population-level preventive healt
 
 > Not affiliated with the NHS. Not medical advice. This repository does not process patient-level data.
 
+## Live demo
+
+[Open the Streamlit dashboard](https://regional-health-risk-ai-ikqhu3ynfpabw2emgxg6br.streamlit.app/)
+
 ## Product snapshot
 
 The dashboard is built as an interactive Streamlit app rather than a static notebook. It includes a regional overview, a score explanation layer and a downloadable non-clinical planning report for the selected area.
@@ -163,5 +167,5 @@ It does:
 - [ ] Add live OHID Fingertips indicator mapping
 - [x] Add model-card documentation
 - [x] Add bias review template
-- [ ] Add Streamlit Cloud deployment
+- [x] Add Streamlit Cloud deployment
 - [x] Add selected-region Markdown report export

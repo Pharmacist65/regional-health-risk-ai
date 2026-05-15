@@ -4,6 +4,10 @@
 
 This app is designed to deploy without secrets because it uses synthetic local CSV data by default.
 
+Current public deployment:
+
+[https://regional-health-risk-ai-ikqhu3ynfpabw2emgxg6br.streamlit.app/](https://regional-health-risk-ai-ikqhu3ynfpabw2emgxg6br.streamlit.app/)
+
 Recommended deployment settings:
 
 | Setting | Value |
@@ -31,17 +35,9 @@ Confirm:
 - the selected-region report download works
 - no patient-level data is present
 
-## README update after deployment
+## README deployment link
 
-After the app is deployed, add a short `Live demo` section near the top of `README.md`:
-
-```markdown
-## Live demo
-
-[Open the dashboard](https://your-streamlit-app-url)
-```
-
-Only add this after the deployment URL is working.
+The repository README includes the live demo link near the top of the page so reviewers can open the dashboard without cloning the project.
 
 ## Safety boundary
 
