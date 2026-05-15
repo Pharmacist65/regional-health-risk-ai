@@ -6,6 +6,14 @@ A privacy-first portfolio proof-of-concept for population-level preventive healt
 
 > Not affiliated with the NHS. Not medical advice. This repository does not process patient-level data.
 
+## Product snapshot
+
+The dashboard is built as an interactive Streamlit app rather than a static notebook. It includes a regional overview, a score explanation layer and a downloadable non-clinical planning report for the selected area.
+
+![Dashboard overview](docs/images/dashboard_overview.jpg)
+
+![Regional report generator](docs/images/regional_report.jpg)
+
 ## What this project demonstrates
 
 This project turns a public-health concept into a working software MVP:
@@ -72,7 +80,9 @@ data/
 docs/
   architecture.md
   data_governance.md
+  deployment.md
   ethics_privacy.md
+  images/
   model_card.md
   project_brief.md
   portfolio_pitch.md
@@ -105,6 +115,7 @@ The app opens a Streamlit dashboard with a regional score ranking, map, selected
 - [Model card](docs/model_card.md) - intended use, non-intended use, assumptions, limitations and ethical boundaries
 - [Architecture](docs/architecture.md) - system flow and component overview
 - [Data governance](docs/data_governance.md) - validation checks, data boundaries and real-data readiness
+- [Deployment](docs/deployment.md) - Streamlit Community Cloud deployment checklist
 - [Ethics and privacy](docs/ethics_privacy.md) - governance and privacy framing
 - [Portfolio pitch](docs/portfolio_pitch.md) - recruiter-facing summary and interview talking points
 - [Scoring methodology](docs/scoring_methodology.md) - scoring assumptions, weights and limitations
