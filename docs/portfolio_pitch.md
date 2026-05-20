@@ -14,6 +14,7 @@ Population-level signals can help public-health, pharmacy and primary-care teams
 
 ## What the project demonstrates
 
+- Live Streamlit deployment for fast reviewer access.
 - Python package structure with small, testable modules.
 - pandas feature engineering over aggregate prescribing and public-health data.
 - Transparent composite scoring instead of black-box clinical prediction.

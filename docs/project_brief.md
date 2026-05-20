@@ -1,40 +1,42 @@
-# Project brief
+# Project Brief
 
 ## Title
 
-AI-Driven Regional Health Risk Optimisation
+Regional Preventive Health Analytics
 
 ## One-line summary
 
-A population-level, prevention-first analytics framework that uses anonymised aggregate prescribing and public health indicators to identify regional risk patterns and prioritise evidence-informed prevention workflows through primary care and community pharmacy channels.
+A privacy-first, population-level analytics MVP that uses synthetic aggregate prescribing and public-health indicators to demonstrate regional prevention-prioritisation workflows.
 
 ## Intended use
 
-This is a portfolio proof-of-concept that demonstrates how regional prescribing patterns and public health indicators can be turned into interpretable risk signals.
+This is a portfolio proof-of-concept that demonstrates how regional prescribing patterns and public-health indicators could be turned into interpretable aggregate planning signals.
 
 ## Non-intended use
 
-This is not a clinical decision-support system. It must not be used to diagnose patients, recommend medication changes or replace professional judgement.
+This is not a clinical decision-support system. It must not be used to diagnose patients, recommend medication changes, provide dosing advice or replace professional judgement.
 
 ## Core users
 
 - health data analysts
-- pharmacy/public-health teams
+- pharmacy and public-health teams
 - primary-care operations teams
 - digital health product evaluators
 
 ## MVP features
 
-- area-level risk scoring
+- area-level prevention-prioritisation scoring
 - medication-class density trends
-- intervention prioritisation dashboard
+- geographic planning-signal dashboard
+- selected-region report export
 - non-clinical action suggestions
 - explicit ethics/privacy positioning
 
 ## Success criteria for portfolio use
 
 - runnable dashboard
+- live demo link
 - clean code structure
 - transparent method
-- test coverage for scoring pipeline
+- test coverage for connector, validation and scoring logic
 - clear privacy boundaries

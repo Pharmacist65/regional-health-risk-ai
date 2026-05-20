@@ -10,6 +10,8 @@ A privacy-first portfolio proof-of-concept for population-level preventive healt
 
 [Open the Streamlit dashboard](https://regional-health-risk-ai-ikqhu3ynfpabw2emgxg6br.streamlit.app/)
 
+For a quick review path, see the [demo walkthrough](docs/demo_walkthrough.md).
+
 ## Product snapshot
 
 The dashboard is built as an interactive Streamlit app rather than a static notebook. It includes a regional overview, a score explanation layer and a downloadable non-clinical planning report for the selected area.
@@ -86,6 +88,7 @@ docs/
   architecture.md
   bias_review_template.md
   data_governance.md
+  demo_walkthrough.md
   deployment.md
   ethics_privacy.md
   images/
@@ -123,6 +126,7 @@ The map can be coloured by either risk tier or the primary aggregate planning si
 - [Architecture](docs/architecture.md) - system flow and component overview
 - [Bias review template](docs/bias_review_template.md) - fairness and interpretation checklist for future real-data adaptation
 - [Data governance](docs/data_governance.md) - validation checks, data boundaries and real-data readiness
+- [Demo walkthrough](docs/demo_walkthrough.md) - two-minute reviewer path through the live dashboard
 - [Deployment](docs/deployment.md) - Streamlit Community Cloud deployment checklist
 - [Ethics and privacy](docs/ethics_privacy.md) - governance and privacy framing
 - [Portfolio pitch](docs/portfolio_pitch.md) - recruiter-facing summary and interview talking points
