@@ -91,6 +91,7 @@ data/
 docs/
   architecture.md
   bias_review_template.md
+  case_study.md
   data_governance.md
   demo_walkthrough.md
   deployment.md
@@ -127,6 +128,7 @@ The map can be coloured by either risk tier or the primary aggregate planning si
 ## Documentation
 
 - [Changelog](CHANGELOG.md) - release notes and current MVP scope
+- [Case study](docs/case_study.md) - product decisions, trade-offs and interview narrative
 - [Model card](docs/model_card.md) - intended use, non-intended use, assumptions, limitations and ethical boundaries
 - [Architecture](docs/architecture.md) - system flow and component overview
 - [Bias review template](docs/bias_review_template.md) - fairness and interpretation checklist for future real-data adaptation

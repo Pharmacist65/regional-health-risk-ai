@@ -4,6 +4,12 @@ All notable changes to this portfolio MVP are documented here.
 
 This project follows a lightweight release-note format rather than strict semantic versioning because it is a portfolio demonstration, not a production package.
 
+## Unreleased
+
+### Added
+
+- Case study document covering product decisions, trade-offs, safety boundaries and interview narrative.
+
 ## v0.1.0 - 2026-05-20
 
 First public portfolio MVP release.

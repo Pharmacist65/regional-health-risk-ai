@@ -32,6 +32,7 @@ Population-level signals can help public-health, pharmacy and primary-care teams
 
 ## Interview talking points
 
+- How the case study frames the product decisions and trade-offs.
 - Why the demo uses synthetic aggregate data by default.
 - How the risk score is computed and why it is intentionally interpretable.
 - How the dashboard avoids individual advice, diagnosis and treatment recommendations.
