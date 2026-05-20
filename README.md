@@ -12,6 +12,10 @@ A privacy-first portfolio proof-of-concept for population-level preventive healt
 
 For a quick review path, see the [demo walkthrough](docs/demo_walkthrough.md).
 
+## Current release
+
+`v0.1.0` is the first public portfolio MVP release. See the [changelog](CHANGELOG.md).
+
 ## Product snapshot
 
 The dashboard is built as an interactive Streamlit app rather than a static notebook. It includes a regional overview, a score explanation layer and a downloadable non-clinical planning report for the selected area.
@@ -122,6 +126,7 @@ The map can be coloured by either risk tier or the primary aggregate planning si
 
 ## Documentation
 
+- [Changelog](CHANGELOG.md) - release notes and current MVP scope
 - [Model card](docs/model_card.md) - intended use, non-intended use, assumptions, limitations and ethical boundaries
 - [Architecture](docs/architecture.md) - system flow and component overview
 - [Bias review template](docs/bias_review_template.md) - fairness and interpretation checklist for future real-data adaptation
