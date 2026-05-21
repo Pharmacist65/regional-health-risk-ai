@@ -42,6 +42,14 @@ Public-health checks:
 - latitude and longitude ranges
 - percentage and index ranges from 0 to 100
 
+## Data quality report
+
+`src/quality_report.py` converts validation results into a compact, dashboard-friendly summary. It reports row counts, column counts, area counts, missing values, blank values, duplicate aggregate keys and validation issues for each input dataset.
+
+The Streamlit dashboard surfaces this in the method and governance tab as a data-quality snapshot. The static documentation version is available in [data_quality_report.md](data_quality_report.md).
+
+This report is a schema and quality guardrail only. It does not validate the score clinically, verify real-world representativeness or support individual decisions.
+
 ## Real aggregate data readiness
 
 Before any real open-data use, the project would need:

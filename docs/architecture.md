@@ -14,6 +14,8 @@ Synthetic aggregate CSVs      Future aggregate open-data sources
           v
   src.validation schema and quality checks
           |
+          +----> src.quality_report dashboard summary
+          |
           v
   src.risk_model feature builder
           |
@@ -48,6 +50,8 @@ Both functions currently return local synthetic CSV data by default. They do not
 
 These checks are not clinical validation. They are data-quality guardrails for a portfolio analytics workflow.
 
+`src/quality_report.py` turns those validation outcomes into a compact quality report for the dashboard and documentation. It summarises row counts, area counts, missingness, blank values, duplicate aggregate keys and issue counts for each input dataset.
+
 ### Feature layer
 
 `src/risk_model.py` validates required columns and converts monthly medication-class rows into one row per area. Derived features include:
@@ -75,6 +79,7 @@ The scoring layer exposes the largest weighted score component as a primary plan
 - selected-area medication-class trend
 - score component breakdown
 - public-health indicator snapshot for the selected area
+- data-quality snapshot for aggregate input datasets
 - ranked intervention table
 - downloadable regional Markdown report with aggregate prescribing and public-health indicators
 
@@ -95,6 +100,7 @@ Tests live in `tests/` and focus on pure connector, validation, data-processing 
 - OpenPrescribing aggregate prescribing connector
 - OHID Fingertips public-health indicator connector
 - documented data-quality checks
+- dashboard data-quality report export
 - data governance documentation
 - exportable regional reports in CSV or PDF
 - Streamlit Cloud deployment

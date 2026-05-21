@@ -9,6 +9,7 @@ This project follows a lightweight release-note format rather than strict semant
 ### Added
 
 - Case study document covering product decisions, trade-offs, safety boundaries and interview narrative.
+- Data quality report layer for aggregate input validation summaries in code, dashboard and docs.
 
 ## v0.1.0 - 2026-05-20
 

@@ -82,6 +82,7 @@ app/
 src/
   connectors.py                # open-data connector stubs with synthetic fallback
   data_pipeline.py              # synthetic data generator
+  quality_report.py             # aggregate data quality summary helpers
   validation.py                 # aggregate input validation checks
   risk_model.py                 # feature builder and risk score
 data/
@@ -92,6 +93,7 @@ docs/
   architecture.md
   bias_review_template.md
   case_study.md
+  data_quality_report.md
   data_governance.md
   demo_walkthrough.md
   deployment.md
@@ -133,6 +135,7 @@ The map can be coloured by either risk tier or the primary aggregate planning si
 - [Architecture](docs/architecture.md) - system flow and component overview
 - [Bias review template](docs/bias_review_template.md) - fairness and interpretation checklist for future real-data adaptation
 - [Data governance](docs/data_governance.md) - validation checks, data boundaries and real-data readiness
+- [Data quality report](docs/data_quality_report.md) - schema checks and aggregate data-quality summary
 - [Demo walkthrough](docs/demo_walkthrough.md) - two-minute reviewer path through the live dashboard
 - [Deployment](docs/deployment.md) - Streamlit Community Cloud deployment checklist
 - [Ethics and privacy](docs/ethics_privacy.md) - governance and privacy framing
@@ -174,6 +177,7 @@ It does:
 - [ ] Replace synthetic data with documented aggregate open data connectors
 - [x] Add OpenPrescribing/OHID connector stubs with synthetic fallback
 - [x] Add aggregate data validation and governance documentation
+- [x] Add dashboard data-quality report for aggregate inputs
 - [ ] Add live OpenPrescribing API integration examples
 - [ ] Add live OHID Fingertips indicator mapping
 - [x] Add model-card documentation

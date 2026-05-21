@@ -17,6 +17,7 @@ from src.connectors import (
     load_ohid_fingertips_public_health_indicators,
     load_openprescribing_aggregate_prescribing,
 )
+from src.quality_report import build_data_quality_report
 from src.risk_model import (
     add_planning_signal_profiles,
     build_area_features,
@@ -50,6 +51,7 @@ prescribing_df, public_health_df = load_data()
 features_df = build_area_features(prescribing_df, public_health_df)
 scored_df = add_planning_signal_profiles(compute_risk_scores(features_df))
 intervention_df = summarize_interventions(scored_df)
+quality_report_df = build_data_quality_report(prescribing_df, public_health_df)
 
 TIER_COLORS = {
     "Low": "#2A9D8F",
@@ -327,4 +329,28 @@ with method_tab:
 - Outputs are designed for population-level awareness and service-planning discussions.
 - The system must not be used for individual triage, diagnosis, treatment, dosing or prescribing.
 """
+    )
+    st.subheader("Data quality snapshot")
+    st.caption(
+        "Schema and aggregate data-quality checks only. Passing checks does not mean "
+        "clinical validation or real-world suitability."
+    )
+    st.dataframe(
+        quality_report_df,
+        width="stretch",
+        hide_index=True,
+        column_config={
+            "dataset": "Dataset",
+            "rows": st.column_config.NumberColumn("Rows", format="%d"),
+            "columns": st.column_config.NumberColumn("Columns", format="%d"),
+            "area_count": st.column_config.NumberColumn("Areas", format="%d"),
+            "missing_values": st.column_config.NumberColumn("Missing", format="%d"),
+            "blank_values": st.column_config.NumberColumn("Blank", format="%d"),
+            "duplicate_key_rows": st.column_config.NumberColumn(
+                "Duplicate key rows", format="%d"
+            ),
+            "validation_status": "Status",
+            "issue_count": st.column_config.NumberColumn("Issues", format="%d"),
+            "issues": "Validation notes",
+        },
     )
