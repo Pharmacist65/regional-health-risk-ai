@@ -44,6 +44,13 @@ Future real-data experiments should use local downloaded aggregate CSVs with the
 
 The connector stubs in `src/connectors.py` accept local CSV paths. They do not make live API calls or require API keys.
 
+If a downloaded OpenPrescribing-style or OHID/Fingertips-style CSV does not already match the project schemas above, use `src/open_data_mapping.py` to create a validated local schema-compatible dataframe first:
+
+- `map_openprescribing_aggregate_csv(...)` maps local aggregate prescribing extracts into `sample_aggregate_prescribing.csv` shape.
+- `map_ohid_fingertips_indicator_csv(...)` maps local long-format indicator exports into `sample_public_health_indicators.csv` shape.
+
+These helpers only read local files or in-memory dataframes. They do not download data, call APIs, require credentials or change the default synthetic runtime path.
+
 ## Safety boundary
 
 Do not add patient-level records, simulated identifiable patients, private credentials or source files that imply NHS affiliation. Any real open-data adaptation should document provenance, licences, transformations, aggregation level and validation results.

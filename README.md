@@ -47,6 +47,8 @@ The included CSV files are **synthetic demo data**. They are included so recruit
 
 `src/connectors.py` includes placeholder interfaces for future OpenPrescribing-style aggregate prescribing data and OHID/Fingertips-style public health indicators. These stubs read local synthetic CSVs by default and do not make live API calls.
 
+`src/open_data_mapping.py` adds an optional local mapping layer for downloaded aggregate open-data CSVs. It can convert OpenPrescribing-style prescribing extracts and OHID/Fingertips-style long indicator exports into the project's internal schemas before the existing validation checks run.
+
 A real version of this project could be adapted to aggregate/open sources such as:
 
 - NHSBSA English Prescribing Data: https://www.nhsbsa.nhs.uk/prescription-data/prescribing-data/english-prescribing-data-epd
@@ -56,6 +58,8 @@ A real version of this project could be adapted to aggregate/open sources such a
 ## Using local aggregate open data
 
 The default runtime path remains the synthetic CSV files in `data/`. For future experiments, the connector stubs can load local downloaded aggregate CSVs that match the documented schemas in [data/README.md](data/README.md).
+
+If a downloaded aggregate CSV uses source-specific column names, use `src/open_data_mapping.py` first to map it into the project schema. This supports local files only; it does not fetch remote data, require API keys or process patient-level records.
 
 The project intentionally does not make live API calls, require API keys or process patient-level records.
 
@@ -82,6 +86,7 @@ app/
 src/
   connectors.py                # open-data connector stubs with synthetic fallback
   data_pipeline.py              # synthetic data generator
+  open_data_mapping.py          # local aggregate open-data schema mapping helpers
   quality_report.py             # aggregate data quality summary helpers
   validation.py                 # aggregate input validation checks
   risk_model.py                 # feature builder and risk score
@@ -105,6 +110,7 @@ docs/
   scoring_methodology.md
 tests/
   test_connectors.py
+  test_open_data_mapping.py
   test_risk_model.py
   test_validation.py
 ```
@@ -176,6 +182,7 @@ It does:
 
 - [ ] Replace synthetic data with documented aggregate open data connectors
 - [x] Add OpenPrescribing/OHID connector stubs with synthetic fallback
+- [x] Add optional local OpenPrescribing/OHID CSV mapping helpers
 - [x] Add aggregate data validation and governance documentation
 - [x] Add dashboard data-quality report for aggregate inputs
 - [ ] Add live OpenPrescribing API integration examples

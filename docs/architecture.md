@@ -8,6 +8,9 @@ This project is intentionally small: local CSV files flow through connector stub
 Synthetic aggregate CSVs      Future aggregate open-data sources
           |                         OpenPrescribing / OHID
           |                                  |
+          |                                  v
+          |                    src.open_data_mapping offline CSV mapping
+          |                                  |
           v                                  v
       data files <-------------- src.connectors stubs
           |
@@ -43,6 +46,13 @@ The demo reads two CSV files from `data/`:
 - `load_ohid_fingertips_public_health_indicators()` for OHID/Fingertips-style public-health indicators
 
 Both functions currently return local synthetic CSV data by default. They do not make live API calls, require API keys or process patient-level records.
+
+`src/open_data_mapping.py` provides an optional offline mapping layer for downloaded aggregate open-data CSVs:
+
+- `map_openprescribing_aggregate_csv()` maps OpenPrescribing-style aggregate prescribing extracts into the internal prescribing schema.
+- `map_ohid_fingertips_indicator_csv()` maps OHID/Fingertips-style long indicator extracts into the internal public-health schema.
+
+This layer is deliberately separate from the default dashboard runtime. It supports local experimentation while keeping the public demo synthetic and reproducible.
 
 ### Validation layer
 
@@ -99,6 +109,7 @@ Tests live in `tests/` and focus on pure connector, validation, data-processing 
 
 - OpenPrescribing aggregate prescribing connector
 - OHID Fingertips public-health indicator connector
+- local downloaded CSV mapping for OpenPrescribing/OHID-style aggregate extracts
 - documented data-quality checks
 - dashboard data-quality report export
 - data governance documentation
