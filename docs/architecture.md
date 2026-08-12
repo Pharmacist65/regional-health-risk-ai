@@ -2,120 +2,129 @@
 
 ## System overview
 
-This project is intentionally small: local CSV files flow through connector stubs, validation checks, a pandas feature layer, a transparent scoring layer and a Streamlit dashboard. The default data is synthetic aggregate data, so the app can be reviewed publicly without patient privacy risk.
+The repository now has two deliberately separate analytical surfaces. The
+official-data explorer supports descriptive regional research; the original
+Streamlit MVP demonstrates a synthetic prevention-planning workflow. They share
+the same aggregate-only safety boundary but do not silently mix their data.
 
 ```text
-Synthetic aggregate CSVs      Future aggregate open-data sources
-          |                         OpenPrescribing / OHID
-          |                                  |
-          |                                  v
-          |                    src.open_data_mapping offline CSV mapping
-          |                                  |
-          v                                  v
-      data files <-------------- src.connectors stubs
-          |
-          v
-  src.validation schema and quality checks
-          |
-          +----> src.quality_report dashboard summary
-          |
-          v
-  src.risk_model feature builder
-          |
-          v
- transparent composite scoring + tiers
-          |
-          v
- Streamlit dashboard, charts and regional Markdown report export
+OFFICIAL REGIONAL RESEARCH
+
+Local official downloads
+OHID | ONS | HMT | CDC | CMS
+            |
+            v
+scripts/build_regional_dataset.py
+  selection + normalisation + provenance
+            |
+            +----> data/official/*.csv
+            |
+            +----> src/regional_forecasting.py
+            |        recent-window OLS + backtest diagnostics
+            |
+            +----> src/regional_hypotheses.py
+            |        evidence-linked research prompts
+            |
+            v
+docs/assets/regional_data.json
+            |
+            v
+docs/index.html + dashboard.js + dashboard.css
+  static UK/USA explorer + dotted WebGL/canvas atlas
+
+Natural Earth | US Census TIGERweb | ONS Open Geography
+            |
+            v
+scripts/build_globe_geography.py
+  simplification + display-only provenance
+            |
+            v
+docs/assets/globe_geography.json
+
+
+SYNTHETIC PRODUCT MVP
+
+Synthetic aggregate CSVs
+            |
+            v
+connectors -> validation -> quality report -> feature engineering
+            |
+            v
+transparent composite score
+            |
+            v
+Streamlit dashboard + regional Markdown report
 ```
 
-## Components
+## Official data build
 
-### Data layer
+`scripts/build_regional_dataset.py` reads five local source files and does not
+call live APIs. It selects documented indicators and geographies, normalises
+fields, preserves measure definitions and source URLs, and writes compact CSV
+tables plus the static dashboard JSON.
 
-The demo reads two CSV files from `data/`:
+The build includes:
 
-- `sample_aggregate_prescribing.csv`: monthly area-level medication-class item and cost rates
-- `sample_public_health_indicators.csv`: synthetic area-level public-health context
+- nine English statistical regions with OHID QOF prevalence
+- ONS regional Health Index history
+- HM Treasury regional health expenditure per head
+- 50 US states plus District of Columbia with CDC CDI age-adjusted prevalence
+- CMS state personal health care expenditure per capita
 
-`src/data_pipeline.py` can regenerate the synthetic sample data. A production adaptation would replace this layer with validated aggregate open-data connectors and keep synthetic data as a fallback.
+Raw downloads remain outside version control. Selected aggregate outputs are
+committed with provenance and integrity tests.
 
-`src/connectors.py` defines the future connector boundary:
+`scripts/build_globe_geography.py` is a separate display-geography build. It
+normalises and simplifies Natural Earth country boundaries, 2025 US Census
+state boundaries and December 2024 ONS England-region boundaries into a compact
+browser bundle. These geometries support navigation only and are not analytical,
+legal or survey boundaries.
 
-- `load_openprescribing_aggregate_prescribing()` for OpenPrescribing-style aggregate prescribing data
-- `load_ohid_fingertips_public_health_indicators()` for OHID/Fingertips-style public-health indicators
+## Forecast layer
 
-Both functions currently return local synthetic CSV data by default. They do not make live API calls, require API keys or process patient-level records.
+`src/regional_forecasting.py` is a pure, deterministic module. It cleans annual
+series, fits recent-window OLS, performs rolling-origin backtesting and returns a
+two-period projection with diagnostics and an exploratory residual band. It has
+no clinical labels, hidden features or patient inputs.
 
-`src/open_data_mapping.py` provides an optional offline mapping layer for downloaded aggregate open-data CSVs:
+## Hypothesis layer
 
-- `map_openprescribing_aggregate_csv()` maps OpenPrescribing-style aggregate prescribing extracts into the internal prescribing schema.
-- `map_ohid_fingertips_indicator_csv()` maps OHID/Fingertips-style long indicator extracts into the internal public-health schema.
+`src/regional_hypotheses.py` stores reviewed prompts and evidence links by metric.
+The selected area's position against a same-country median determines only the
+context sentence. It does not infer which candidate domain caused the value.
 
-This layer is deliberately separate from the default dashboard runtime. It supports local experimentation while keeping the public demo synthetic and reproducible.
+## Static dashboard
 
-### Validation layer
+`docs/index.html` is a no-build static application suitable for local review and
+future GitHub Pages hosting. `docs/assets/dashboard.js` loads the versioned JSON,
+manages country/area/indicator controls, renders SVG history and spending charts,
+and creates a Globe.GL/Three.js dotted globe. Geographic hover is resolved from
+the pointer coordinate against the bundled GeoJSON, so highlighting does not add
+overlapping polygon meshes. If WebGL or the pinned external script is unavailable,
+a local dotted-canvas fallback keeps the view functional.
 
-`src/validation.py` checks aggregate input quality before data reaches the scoring pipeline. It validates required columns, parseable dates, missing area identifiers, duplicate rows, unknown medication classes, negative values and public-health indicator ranges.
+UK and US selectors have separate metric dictionaries. Cross-country rankings
+are not implemented by design.
 
-These checks are not clinical validation. They are data-quality guardrails for a portfolio analytics workflow.
+## Synthetic Streamlit path
 
-`src/quality_report.py` turns those validation outcomes into a compact quality report for the dashboard and documentation. It summarises row counts, area counts, missingness, blank values, duplicate aggregate keys and issue counts for each input dataset.
+The existing `app/streamlit_app.py` path keeps its synthetic fallback and
+transparent composite scoring. `src/connectors.py`, `src/open_data_mapping.py`,
+`src/validation.py`, `src/quality_report.py` and `src/risk_model.py` remain its
+primary modules.
 
-### Feature layer
+## Verification
 
-`src/risk_model.py` validates required columns and converts monthly medication-class rows into one row per area. Derived features include:
-
-- NSAID mean items per 1,000 population
-- months above the area NSAID median
-- cardiometabolic prescribing density
-- public-health context indicators joined by area
-
-### Scoring layer
-
-The composite score uses min-max scaled features with visible weights. This keeps the method explainable for portfolio review and avoids implying a validated clinical prediction model.
-
-The scoring layer also generates non-clinical prevention workflow prompts. These prompts are for aggregate planning discussions only.
-
-The scoring layer exposes the largest weighted score component as a primary planning signal. This is used for map exploration and selected-area explanation. It is not a disease ranking or evidence of reported local diagnoses.
-
-### Dashboard layer
-
-`app/streamlit_app.py` provides:
-
-- a top-level disclaimer panel
-- regional score ranking
-- map view by risk tier or primary aggregate planning signal
-- selected-area medication-class trend
-- score component breakdown
-- public-health indicator snapshot for the selected area
-- data-quality snapshot for aggregate input datasets
-- ranked intervention table
-- downloadable regional Markdown report with aggregate prescribing and public-health indicators
-
-## Testing
-
-Tests live in `tests/` and focus on pure connector, validation, data-processing and scoring functions. The GitHub Actions workflow installs the documented requirements and runs `pytest`.
-
-## Current stack
-
-- Python
-- pandas
-- Streamlit
-- Plotly
-- pytest
-
-## Future integration points
-
-- OpenPrescribing aggregate prescribing connector
-- OHID Fingertips public-health indicator connector
-- local downloaded CSV mapping for OpenPrescribing/OHID-style aggregate extracts
-- documented data-quality checks
-- dashboard data-quality report export
-- data governance documentation
-- exportable regional reports in CSV or PDF
-- Streamlit Cloud deployment
+Tests cover transform-independent forecasting behavior, interval bounds,
+non-causal hypothesis language, official output geography/metric coverage,
+duplicate keys, confidence-interval ordering, spending periods, forecast
+horizons and dashboard metadata.
+The display-geography tests also enforce country/region counts, exact agreement
+with dashboard area codes, finite closed rings and retained licence metadata.
 
 ## Safety boundary
 
-The architecture must remain aggregate and public-health oriented. It must not ingest patient-level records, provide diagnosis, recommend treatment, provide dosing advice or claim NHS affiliation.
+No component may ingest patient-level records, infer individual disease risk,
+provide diagnosis or treatment advice, automate resource allocation or claim
+government/NHS endorsement. Any operational adaptation would require separate
+statistical validation, privacy review, clinical-safety review and governance.

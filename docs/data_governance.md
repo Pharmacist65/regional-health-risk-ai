@@ -2,75 +2,106 @@
 
 ## Purpose
 
-This project is a portfolio demonstration of aggregate public-health analytics. The default runtime path uses synthetic area-level data only.
+This public repository demonstrates aggregate public-health analytics through a
+synthetic Streamlit MVP and an official regional research explorer.
 
 ## Data boundary
 
 Allowed:
 
-- synthetic aggregate prescribing indicators
-- synthetic aggregate public-health indicators
-- optional local aggregate open-data CSVs with documented provenance
+- synthetic aggregate prescribing and public-health indicators
+- official aggregate regional health and spending tables
+- public geography identifiers, centroids and generalised display boundaries
+- source confidence limits, definitions and provenance
 
 Not allowed:
 
-- patient-level records
-- simulated identifiable patient records
+- patient-level or row-level clinical records
+- identifiable or simulated identifiable people
 - private prescribing extracts
-- API keys, tokens or credentials
-- outputs framed as clinical advice or individual risk prediction
+- API keys, tokens, credentials or local handoff notes
+- diagnosis, treatment or individual-risk outputs
+
+`LOCAL_SESSION_HANDOFF.md`, `.venv/`, caches and local working extracts are
+ignored and must remain outside commits. Raw downloaded source workbooks are
+kept outside the repository; only compact selected aggregate outputs are public.
+
+## Official source governance
+
+Every official output carries geography, period, measure type, population,
+publisher and source URL. The snapshot extract date is 2026-08-12. Source
+publication periods remain visible and are not relabelled as current-year data.
+
+The source ledger, selections and rebuild command are documented in
+`data/official/README.md`. Source pages and their current reuse terms are
+authoritative.
+
+The map bundle is governed separately from the health snapshot. It contains
+only generalised public boundary coordinates and names. Natural Earth country
+geometry is public domain; US state geometry is sourced from the US Census
+Bureau; ONS digital boundaries are reused under the Open Government Licence
+v3.0 with the required ONS and Ordnance Survey attribution shown in the static
+site footer and source ledger.
+
+## Comparability controls
+
+- England QOF registered prevalence is not ranked against US BRFSS/CDI
+  age-adjusted adult prevalence.
+- Indicator-specific denominators are displayed with the selected measure.
+- UK and US spending retain separate definitions and currencies.
+- England coverage is described as nine statistical regions, not full UK data.
+- Scotland, Wales and Northern Ireland require separate definition-preserving
+  views before inclusion.
 
 ## Validation checks
 
-`src/validation.py` performs lightweight input checks before connector data enters the scoring pipeline.
+The synthetic path validates required columns, dates, missing area identifiers,
+duplicate aggregate keys, unknown medication classes, negative rates and
+public-health indicator ranges.
 
-Prescribing checks:
+The official snapshot tests validate:
 
-- required columns
-- parseable month values
-- missing or blank area identifiers
-- duplicate rows by month, area and medication class
-- unsupported medication classes
-- non-numeric or negative item and cost rates
+- expected geography and metric coverage
+- unique area/metric/year keys
+- prevalence and confidence-interval ordering
+- positive spending values and documented periods
+- two-period forecast horizons and 0-100 bounds
+- source URLs and dashboard interpretation metadata
+- display-geography coverage, ring validity and licence metadata
 
-Public-health checks:
+These are engineering and data-integrity checks, not clinical validation.
 
-- required columns
-- missing or blank area identifiers
-- duplicate rows by area code
-- non-numeric values
-- latitude and longitude ranges
-- percentage and index ranges from 0 to 100
+## Forecast governance
 
-## Local open-data mapping
+Forecasts are deterministic recent-window OLS baselines. Training periods,
+observation counts, fit statistics and rolling errors are preserved. Forecasts
+are omitted when fewer than four observations are available. The displayed
+interval is explicitly described as exploratory residual variation.
 
-`src/open_data_mapping.py` provides optional helpers for local downloaded aggregate CSVs:
+No output may be used to automate service, funding or clinical decisions without
+independent validation and governance.
 
-- `map_openprescribing_aggregate_csv(...)` maps OpenPrescribing-style prescribing extracts into the internal aggregate prescribing schema.
-- `map_ohid_fingertips_indicator_csv(...)` maps OHID/Fingertips-style long indicator exports into the internal public-health schema.
+## Contribution hypotheses
 
-The mapping layer is offline-only. It accepts local files or in-memory dataframes, applies explicit column and indicator mappings where needed, and then runs the same validation checks listed above. It does not make live API calls, require API keys or change the default synthetic-data runtime path.
+Possible contributor cards are evidence-linked prompts for further analysis.
+They are not generated causal findings. Regional co-occurrence cannot establish
+individual or area-level causation, and prompts should not be used to stigmatise
+communities.
 
-## Data quality report
+## Change control
 
-`src/quality_report.py` converts validation results into a compact, dashboard-friendly summary. It reports row counts, column counts, area counts, missing values, blank values, duplicate aggregate keys and validation issues for each input dataset.
+Before refreshing or extending official data:
 
-The Streamlit dashboard surfaces this in the method and governance tab as a data-quality snapshot. The static documentation version is available in [data_quality_report.md](data_quality_report.md).
+1. Record publisher, dataset version, extract date and licence terms.
+2. Review measure and geography definition changes.
+3. Update explicit indicator selections in the builder.
+4. Rebuild compact outputs from local source files.
+5. Run all unit and data-integrity tests.
+6. Review the dashboard for missingness and changed interpretation.
+7. Update the source ledger and model card before publication.
 
-This report is a schema and quality guardrail only. It does not validate the score clinically, verify real-world representativeness or support individual decisions.
+## Operational gap
 
-## Real aggregate data readiness
-
-Before any real open-data use, the project would need:
-
-- source licence review
-- documented extract date and refresh cadence
-- column mapping from source data into the project schema
-- saved mapping assumptions for medication classes and public-health indicators
-- data-quality report for missingness, duplicates and outliers
-- review of whether the selected indicators are suitable for the intended public-health planning question
-- governance review before any deployment outside a portfolio demo
-
-## Interpretation limits
-
-Validation makes the input safer to process, but it does not make the score clinically valid. The dashboard remains a prevention-prioritisation analytics demo, not a clinical system.
+The repository has no production authentication, access logging, monitoring,
+data-retention service or clinical-safety case. It is suitable for public
+portfolio review, not operational healthcare use.

@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A transparent UK and US regional public-health analytics portfolio project using official aggregate open data."
+    />
+    <meta name="theme-color" content="#071d18" />
+    <link rel="canonical" href="https://pharmacist65.github.io/regional-health-risk-ai/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Regional Preventive Health Analytics" />
+    <meta
+      property="og:description"
+      content="Explore official aggregate UK and US regional health histories, spending context and transparent short-horizon forecasts."
+    />
+    <meta property="og:url" content="https://pharmacist65.github.io/regional-health-risk-ai/" />
+    <meta
+      property="og:image"
+      content="https://pharmacist65.github.io/regional-health-risk-ai/images/social_preview.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:video"
+      content="https://pharmacist65.github.io/regional-health-risk-ai/media/regional-health-atlas-demo.mp4"
+    />
+    <meta property="og:video:type" content="video/mp4" />
+    <meta property="og:video:width" content="1280" />
+    <meta property="og:video:height" content="720" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Regional Preventive Health Analytics" />
+    <meta
+      name="twitter:description"
+      content="Official aggregate UK and US regional health signals with transparent methods."
+    />
+    <meta
+      name="twitter:image"
+      content="https://pharmacist65.github.io/regional-health-risk-ai/images/social_preview.jpg"
+    />
+    <title>Regional Preventive Health Analytics</title>
+    <link rel="stylesheet" href="assets/dashboard.css" />
+    <script type="module" src="assets/dashboard.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#atlas" aria-label="Regional Preventive Health Analytics home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>
+          <strong>Regional Preventive Health</strong>
+          <small>Open-data planning explorer</small>
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Project navigation">
+        <a href="#analysis">Analysis</a>
+        <a href="#methods">Methods</a>
+        <a href="https://github.com/Pharmacist65/regional-health-risk-ai" target="_blank" rel="noreferrer">Repository</a>
+      </nav>
+      <span class="release-chip">Research preview</span>
+    </header>
+
+    <main>
+      <section class="atlas" id="atlas" aria-labelledby="atlas-title">
+        <div class="atlas-globe-stage" aria-hidden="false">
+          <div
+            id="atlas-globe"
+            role="img"
+            aria-label="Interactive dotted globe showing countries, United States states and English regions"
+          ></div>
+        </div>
+        <div class="atlas-grid" aria-hidden="true"></div>
+
+        <div class="atlas-copy">
+          <p class="eyebrow">Official aggregate open data</p>
+          <h1 id="atlas-title">Regional signal atlas</h1>
+          <p id="atlas-summary" class="atlas-summary" aria-live="polite"></p>
+          <div class="atlas-badges" aria-label="Data boundaries">
+            <span>No patient records</span>
+            <span>Exploratory forecast</span>
+            <span>No causal inference</span>
+          </div>
+        </div>
+
+        <form class="control-dock" aria-label="Regional data controls">
+          <div class="control-group country-group">
+            <span class="control-label">Country lens</span>
+            <div class="segmented" role="group" aria-label="Country lens">
+              <button type="button" data-country="UK" aria-pressed="true">UK</button>
+              <button type="button" data-country="USA" aria-pressed="false">USA</button>
+            </div>
+          </div>
+          <label class="control-group">
+            <span class="control-label">Area</span>
+            <select id="area-select"></select>
+          </label>
+          <label class="control-group">
+            <span class="control-label">Indicator</span>
+            <select id="metric-select"></select>
+          </label>
+          <p class="coverage-note" id="coverage-note"></p>
+        </form>
+
+        <div class="atlas-scale" aria-hidden="true">
+          <span>Lower peer value</span>
+          <i></i>
+          <span>Higher peer value</span>
+        </div>
+      </section>
+
+      <section class="metric-strip" aria-label="Selected area summary">
+        <article>
+          <span>Latest aggregate value</span>
+          <strong id="latest-value">&mdash;</strong>
+          <small id="latest-period">&mdash;</small>
+        </article>
+        <article>
+          <span>Country peer position</span>
+          <strong id="peer-rank">&mdash;</strong>
+          <small id="peer-comparison">&mdash;</small>
+        </article>
+        <article>
+          <span>Modelled annual direction</span>
+          <strong id="trend-direction">&mdash;</strong>
+          <small id="model-quality">&mdash;</small>
+        </article>
+        <article>
+          <span>Health spending per head</span>
+          <strong id="spending-value">&mdash;</strong>
+          <small id="spending-period">&mdash;</small>
+        </article>
+      </section>
+
+      <section class="analysis-band" id="analysis">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Observed history + short horizon</p>
+            <h2 id="trend-title">Indicator trajectory</h2>
+          </div>
+          <div class="chart-key" aria-label="Chart legend">
+            <span><i class="key-observed"></i>Observed</span>
+            <span><i class="key-forecast"></i>Forecast</span>
+            <span><i class="key-band"></i>Exploratory 80% band</span>
+          </div>
+        </div>
+        <div class="analysis-grid">
+          <div class="chart-surface">
+            <div id="trend-chart" class="chart" role="img" aria-label="Selected indicator history and forecast"></div>
+            <p class="chart-note" id="forecast-note"></p>
+          </div>
+          <aside class="ranking-panel" aria-labelledby="ranking-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Same-country peers</p>
+                <h3 id="ranking-title">Regional distribution</h3>
+              </div>
+              <span id="ranking-count"></span>
+            </div>
+            <div id="ranking-chart" class="ranking-chart"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="spending-band" aria-labelledby="spending-title">
+        <div class="spending-copy">
+          <p class="eyebrow">Resource context</p>
+          <h2 id="spending-title">Health spending history</h2>
+          <p id="spending-definition"></p>
+          <dl class="spending-stats">
+            <div>
+              <dt>First observed</dt>
+              <dd id="spending-first">&mdash;</dd>
+            </div>
+            <div>
+              <dt>Latest observed</dt>
+              <dd id="spending-latest">&mdash;</dd>
+            </div>
+            <div>
+              <dt>Nominal change</dt>
+              <dd id="spending-change">&mdash;</dd>
+            </div>
+          </dl>
+        </div>
+        <div id="spending-chart" class="chart spending-chart" role="img" aria-label="Health spending history"></div>
+      </section>
+
+      <section class="context-band" aria-labelledby="context-title">
+        <div class="context-copy">
+          <p class="eyebrow">Second regional lens</p>
+          <h2 id="context-title">Wider regional context</h2>
+          <p id="context-description"></p>
+          <a id="context-source-link" href="#" target="_blank" rel="noreferrer">Open official source</a>
+        </div>
+        <div class="context-visual">
+          <div class="chart-key context-key" aria-label="Context chart legend">
+            <span><i class="key-context-primary"></i><b id="context-key-primary">Selected area</b></span>
+            <span id="context-secondary-key"><i class="key-context-secondary"></i><b id="context-key-secondary">Macro-region median</b></span>
+          </div>
+          <div id="context-chart" class="chart context-chart" role="img" aria-label="Wider regional context history"></div>
+          <p class="chart-note" id="context-note"></p>
+        </div>
+      </section>
+
+      <section class="hypothesis-band" aria-labelledby="hypothesis-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Investigation layer</p>
+            <h2 id="hypothesis-title">Contribution hypotheses</h2>
+          </div>
+          <p class="section-context">
+            Evidence-linked questions for further analysis. These are not explanations, diagnoses, or causal findings.
+          </p>
+        </div>
+        <div id="hypothesis-list" class="hypothesis-list"></div>
+      </section>
+
+      <section class="methods-band" id="methods" aria-labelledby="methods-title">
+        <div class="methods-intro">
+          <p class="eyebrow">Audit trail</p>
+          <h2 id="methods-title">Definitions before conclusions</h2>
+          <p id="cross-country-warning"></p>
+        </div>
+        <div class="method-ledger">
+          <div>
+            <span>Selected measure</span>
+            <strong id="measure-type">&mdash;</strong>
+            <small id="measure-population">&mdash;</small>
+          </div>
+          <div>
+            <span>Forecast method</span>
+            <strong id="forecast-method">&mdash;</strong>
+            <small id="forecast-error">&mdash;</small>
+          </div>
+          <div>
+            <span>Primary data source</span>
+            <strong id="source-name">&mdash;</strong>
+            <a id="source-link" href="#" target="_blank" rel="noreferrer">Open official source</a>
+          </div>
+          <div>
+            <span>Spending data source</span>
+            <strong id="spending-source-name">&mdash;</strong>
+            <a id="spending-source-link" href="#" target="_blank" rel="noreferrer">Open official source</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <p>
+          Portfolio research preview. Not affiliated with the NHS, CDC, CMS, or any government agency.
+          Not medical advice. No patient-level data.
+        </p>
+        <small>
+          Map geometry: Made with Natural Earth; U.S. Census Bureau; Source: Office for National
+          Statistics licensed under the Open Government Licence v.3.0. Contains OS data &copy;
+          Crown copyright and database right 2024.
+        </small>
+      </div>
+      <span id="extract-date"></span>
+    </footer>
+
+    <div class="loading-state" id="loading-state" role="status">Loading regional evidence&hellip;</div>
+  </body>
+</html>

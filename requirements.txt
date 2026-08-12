@@ -3,3 +3,4 @@ numpy>=1.26
 streamlit>=1.36
 plotly>=5.22
 pytest>=8.0
+openpyxl>=3.1

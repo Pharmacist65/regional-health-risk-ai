@@ -1,5 +1,33 @@
 # Deployment
 
+## Static regional explorer
+
+`docs/index.html` and `docs/assets/` form a no-build static site. For local review:
+
+```bash
+python -m http.server 8765 --directory docs
+```
+
+Open `http://127.0.0.1:8765/`.
+
+The directory is published through GitHub Pages from branch `main`, folder
+`/docs`:
+
+[https://pharmacist65.github.io/regional-health-risk-ai/](https://pharmacist65.github.io/regional-health-risk-ai/)
+
+No build step, server runtime or secret is required. The repository README links
+directly to this stable project URL. A 1280x720 walkthrough video is served from
+`docs/media/regional-health-atlas-demo.mp4`.
+
+Publication checks:
+
+- run the full test suite and JSON/JavaScript syntax checks
+- review desktop and mobile rendering
+- verify UK/US controls, geographic hover/click, source links and WebGL fallback
+- confirm the pinned Globe.GL CDN asset loads and the local dotted fallback is usable
+- confirm all committed records are aggregate and publicly reusable
+- retain the cross-country comparability and non-clinical warnings
+
 ## Streamlit Community Cloud checklist
 
 This app is designed to deploy without secrets because it uses synthetic local CSV data by default.
