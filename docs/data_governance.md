@@ -11,6 +11,7 @@ Allowed:
 
 - synthetic aggregate prescribing and public-health indicators
 - official aggregate regional health and spending tables
+- official population estimates and public organization/facility directories
 - public geography identifiers, centroids and generalised display boundaries
 - source confidence limits, definitions and provenance
 
@@ -24,12 +25,14 @@ Not allowed:
 
 `LOCAL_SESSION_HANDOFF.md`, `.venv/`, caches and local working extracts are
 ignored and must remain outside commits. Raw downloaded source workbooks are
-kept outside the repository; only compact selected aggregate outputs are public.
+kept outside the repository. Public outputs are limited to selected aggregate
+tables and the organization/location fields required by the facility explorer.
+NPPES authorized-official fields are explicitly excluded.
 
 ## Official source governance
 
 Every official output carries geography, period, measure type, population,
-publisher and source URL. The snapshot extract date is 2026-08-12. Source
+publisher and source URL. The snapshot extract date is 2026-08-13. Source
 publication periods remain visible and are not relabelled as current-year data.
 
 The source ledger, selections and rebuild command are documented in
@@ -48,7 +51,7 @@ site footer and source ledger.
 - England QOF registered prevalence is not ranked against US BRFSS/CDI
   age-adjusted adult prevalence.
 - Indicator-specific denominators are displayed with the selected measure.
-- UK and US spending retain separate definitions and currencies.
+- England and US spending retain separate definitions and currencies.
 - England coverage is described as nine statistical regions, not full UK data.
 - Scotland, Wales and Northern Ireland require separate definition-preserving
   views before inclusion.
@@ -68,6 +71,10 @@ The official snapshot tests validate:
 - two-period forecast horizons and 0-100 bounds
 - source URLs and dashboard interpretation metadata
 - display-geography coverage, ring validity and licence metadata
+- complete 60-area population and facility coverage
+- facility count/density arithmetic and unique directory identifiers
+- England register-count and US modelled-burden calculations
+- exclusion of NPPES authorized-official fields
 
 These are engineering and data-integrity checks, not clinical validation.
 
@@ -95,12 +102,12 @@ Before refreshing or extending official data:
 1. Record publisher, dataset version, extract date and licence terms.
 2. Review measure and geography definition changes.
 3. Update explicit indicator selections in the builder.
-4. Rebuild compact outputs from local source files.
+4. Rebuild compact outputs and area-specific facility payloads from local source files.
 5. Run all unit and data-integrity tests.
 6. Review the dashboard for missingness and changed interpretation.
 7. Update the source ledger and model card before publication.
 
-## Operational gap
+## Operational scope
 
 The repository has no production authentication, access logging, monitoring,
 data-retention service or clinical-safety case. It is suitable for public

@@ -8,23 +8,30 @@ statistical regions because Scotland, Wales and Northern Ireland publish through
 different health systems and definitions. Combining them into one apparent UK
 league table would create false comparability.
 
-The source snapshot was extracted on 2026-08-12. Source publication periods are
+The source snapshot was extracted on 2026-08-13. Source publication periods are
 shown in the data rather than replaced with the extract date.
 
 ## Freshness and historical depth
 
-The snapshot was rechecked against the publishers on 2026-08-12. "Full
+The snapshot was rechecked against the publishers on 2026-08-13. "Full
 history" means the longest currently published series that preserves the
 selected measure, population and geography. It does not mean concatenating
 archived tables after a definition or boundary change.
 
-| Source | Publisher status on 2026-08-12 | History used in this project | Decision |
+| Source | Publisher status on 2026-08-13 | History used in this project | Decision |
 | --- | --- | --- | --- |
 | NHS England QOF / OHID Fingertips | 2024/25 is the latest release; 2025/26 is scheduled for 27 August 2026 | 2012/13-2024/25 for most selected indicators; depression has 12 periods and asthma starts in 2020/21 | Retain the complete statistical-region history returned for each current indicator definition |
 | ONS Health Index | Current edition released 16 June 2023; next release to be announced | 2015-2021 | Retain the complete current edition |
 | HM Treasury CRA 2025 | Current release covers 2020/21-2024/25 | 2020/21-2024/25 | Retain the complete current-vintage table; do not splice older rolling releases across revisions |
 | CDC Chronic Disease Indicators | Dataset updated 4 June 2026 and contains source years through 2023 | 2019-2023 for the selected refreshed indicators; hypertension is biennial | Retain every available overall age-adjusted observation for the selected current indicator IDs |
 | CMS State Health Expenditure Accounts | Current state-of-residence release is 1991-2020 | 1991-2020 | Retain the complete 30-year residence series |
+| ONS population estimates | Mid-2024 is the latest complete estimate used for English regions | Mid-2024 | Use as the resident-population denominator for access density |
+| CQC care directory | Directory dated 12 August 2026 | Current directory snapshot | Select locations carrying hospital or Doctors/GP service types |
+| NHSBSA pharmaceutical list | 2026/27 Q1 resource published 29 July 2026 | Current contract snapshot | Select Community and Local Pharmaceutical Services entries |
+| U.S. Census state population estimates | Vintage 2025 state detail | 2025 total/adult and revised 2023 adult estimates | Use 2025 for current access density and 2023 for CDC burden estimation |
+| CMS Hospital General Information | File updated 28 April 2026 | Current directory snapshot | Retain hospitals in the 50 states and District of Columbia |
+| HRSA health centers and HPSAs | Files created 12 August 2026 | Current directory and designation snapshots | Retain active service sites and designated primary-care HPSAs |
+| NPPES NPI Registry | Public API queried 13 August 2026 | Query-date snapshot | Retain active organization NPIs with the Community/Retail Pharmacy taxonomy and primary practice address in the state |
 
 NHS England has QOF archives back to 2004/05, but indicator definitions,
 denominators and published regional geographies changed. The earlier archive is
@@ -54,6 +61,55 @@ uses overall estimates for the 50 states and District of Columbia and groups
 states into the eight CMS regions for navigation context. Although the full CDC
 table contains source years from 2015, the selected refreshed indicators begin
 in 2019; no retired definition is backfilled into those series.
+
+## Population burden
+
+The disease charts remain rate-first so areas of different size can be compared
+within the same country and measure.
+
+For England, the latest burden value is the official QOF disease-register count
+and uses the metric-specific registered-patient denominator supplied by OHID.
+It is therefore not inferred from the ONS resident-population estimate.
+
+For the United States, CDC publishes age-adjusted values for comparison and
+crude values for population burden. The dashboard keeps the age-adjusted value
+in the trend and peer views, then multiplies the latest 2023 crude prevalence by
+the revised 2023 Census resident population aged 18+. The displayed range
+applies the CDC crude-prevalence confidence limits to the same denominator.
+This produces a transparent planning estimate rather than a surveillance case
+count.
+
+## Healthcare access directories
+
+England access records use:
+
+- CQC locations with a `Hospital` or `Hospitals - Mental health/capacity`
+  service type for the hospital category
+- CQC locations with a `Doctors/GPs` service type for primary care
+- NHSBSA Community and Local Pharmaceutical Services contract entries for
+  pharmacies
+
+United States access records use:
+
+- hospitals in CMS Hospital General Information
+- active HRSA Health Center Service Delivery and Look-Alike sites, excluding
+  administrative-only sites, for the primary-care category
+- active organization NPIs with taxonomy `3336C0003X` and a primary practice
+  address in the state for community/retail pharmacy directory records
+- designated HRSA Primary Care Health Professional Shortage Areas for a
+  separate shortage-context signal
+
+Counts are divided by the latest resident-population estimate and displayed per
+100,000 residents. The same-country median marker is descriptive and does not
+declare an area adequately or inadequately served. Directory status, service
+availability, appointment capacity, travel time and licensure are distinct
+questions and should be evaluated with the relevant operational source.
+
+CQC and NHSBSA publish the selected directory data under the Open Government
+Licence v3.0. HRSA lists no usage limitations for the selected health-center and
+HPSA downloads. NPPES exposes FOIA-disclosable provider fields; CMS states that
+an NPI does not by itself validate licensure or credentials. The committed
+NPPES subset excludes authorized-official fields.
 
 ## Spending history
 
@@ -97,6 +153,9 @@ database right 2024.
 | Geography | Nine English statistical regions | 50 states and District of Columbia | Select and rank within country only |
 | Health measure | QOF registered prevalence | BRFSS/CDI age-adjusted adult prevalence | Never form a cross-country rank |
 | Denominator | Indicator-specific registered population | Adults aged 18+, age adjusted | Display beside every selected metric |
+| Burden count | Exact QOF register count | CDC crude prevalence applied to same-year Census adult population | Label exact and modelled values separately |
+| Population for access density | ONS mid-2024 residents | Census Vintage 2025 residents | Calculate within the selected geography |
+| Care directory categories | CQC hospital/Doctors-GP locations and NHSBSA pharmacy contracts | CMS hospitals, HRSA health centers and NPPES pharmacy organizations | Keep publisher definitions visible; do not merge into one score |
 | Spending | Identifiable public health expenditure per head | All-payer personal health care expenditure per capita | Separate currency and definition |
 | Forecast | Recent-window OLS, two periods | Recent-window OLS, two years | Exploratory trend only |
 

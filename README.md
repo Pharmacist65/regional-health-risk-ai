@@ -2,26 +2,31 @@
 
 [![Tests](https://github.com/Pharmacist65/regional-health-risk-ai/actions/workflows/tests.yml/badge.svg)](https://github.com/Pharmacist65/regional-health-risk-ai/actions/workflows/tests.yml)
 
-A privacy-first public-health analytics portfolio project with two review paths:
-an official aggregate UK/USA regional evidence explorer and a synthetic
-Streamlit prevention-planning MVP.
+A decision-oriented public-health analytics portfolio with two review paths:
+an official England/USA regional evidence explorer and a synthetic Streamlit
+prevention-planning MVP. The official explorer connects disease burden,
+population, spending and healthcare access in one auditable regional view.
 
 > Not affiliated with the NHS, CDC, CMS or any government agency. Not medical
 > advice. No patient-level data. Forecasts are exploratory and contribution
 > hypotheses are not causal findings.
 
-[Open the live UK/USA regional explorer](https://pharmacist65.github.io/regional-health-risk-ai/)
+[Open the live England/USA regional explorer](https://pharmacist65.github.io/regional-health-risk-ai/)
 | [Watch the 28-second walkthrough](https://pharmacist65.github.io/regional-health-risk-ai/media/regional-health-atlas-demo.mp4)
 
 [![Regional signal atlas showing California adult obesity signals](docs/images/social_preview.jpg)](https://pharmacist65.github.io/regional-health-risk-ai/)
 
 ## Regional evidence explorer
 
-The static GitHub Pages explorer is a **research preview**. It provides:
+The static GitHub Pages explorer provides:
 
 - separate England and United States analytical views
 - nine English statistical regions and all 50 US states plus District of Columbia
 - official historical prevalence indicators with source definitions
+- recorded or modelled population burden beside each selected prevalence rate
+- official population estimates and healthcare capacity per 100,000 residents
+- searchable hospital, primary-care and pharmacy directories for every area
+- US primary-care shortage designations and selected operating-context signals
 - nominal health-spending history in the source currency
 - same-country peer distributions and selected-area trajectories
 - transparent two-period recent-trend forecasts with diagnostics and an 80% exploratory band
@@ -44,12 +49,12 @@ The static app is published from the `docs/` directory at:
 
 ## Data coverage
 
-| View | Health history | Spending history | Geography |
-| --- | --- | --- | --- |
-| England | OHID/NHS England QOF registered prevalence, indicator-dependent 2012/13-2024/25 | HM Treasury identifiable health expenditure per head, 2020/21-2024/25 | Nine statistical regions |
-| United States | CDC CDI age-adjusted adult prevalence, indicator-dependent 2019-2023 | CMS all-payer personal health care expenditure per capita, 1991-2020 | 50 states and District of Columbia |
+| View | Health history | Population and burden | Healthcare access | Spending history |
+| --- | --- | --- | --- | --- |
+| England | OHID/NHS England QOF registered prevalence, indicator-dependent 2012/13-2024/25 | ONS mid-2024 population; exact QOF register count and denominator | CQC hospital and Doctors/GP locations; NHSBSA community/LPS pharmacies | HM Treasury identifiable health expenditure per head, 2020/21-2024/25 |
+| United States | CDC CDI age-adjusted adult prevalence, indicator-dependent 2019-2023 | Census Vintage 2025 population; 2023 crude prevalence applied to same-year adult population | CMS hospitals; HRSA health centers and primary-care HPSAs; active NPPES community/retail pharmacy organizations | CMS all-payer personal health care expenditure per capita, 1991-2020 |
 
-Publisher freshness and full comparable history were rechecked on 2026-08-12.
+Publisher freshness and full comparable history were rechecked on 2026-08-13.
 The explorer uses every available observation for each selected current
 indicator definition. It does not splice retired definitions or revised rolling
 releases into one apparently continuous series.
@@ -97,22 +102,26 @@ must not be interpreted as evidence about named places.
 ## Architecture
 
 ```text
-Official downloaded tables                     Synthetic demo CSVs
-OHID / ONS / HMT / CDC / CMS                   prescribing / context
-              |                                      |
-              v                                      v
- scripts/build_regional_dataset.py          connectors + validation
-              |                                      |
-              v                                      v
- compact regional CSV + JSON                  transparent score
-              |                                      |
-              v                                      v
- static HTML evidence explorer                Streamlit dashboard
+Official health + spending        Population + care directories       Synthetic demo CSVs
+OHID / ONS / HMT / CDC / CMS      ONS / CQC / NHSBSA / Census /       prescribing / context
+              |                    CMS / HRSA / NPPES                         |
+              v                              |                               v
+ scripts/build_regional_dataset.py           v                      connectors + validation
+              |                    scripts/build_access_dataset.py           |
+              +------------------------------+                               v
+                             |                                      transparent score
+                             v                                              |
+                  compact regional JSON +                                  v
+                  lazy facility snapshots                          Streamlit dashboard
+                             |
+                             v
+                  static HTML evidence explorer
 ```
 
-The official-data builder reads local source downloads, makes no live API calls,
-requires no credentials and writes only aggregate outputs. The Streamlit runtime
-continues to use synthetic CSVs by default.
+The official-data builders read local source downloads and require no
+credentials. Health outputs are aggregate; facility payloads contain a restricted
+set of public organization/location fields. The Streamlit runtime continues to
+use synthetic CSVs by default.
 
 ## Repository structure
 
@@ -122,12 +131,15 @@ app/
 data/
   official/                        # compact official aggregate outputs + provenance
 docs/
-  index.html                       # static UK/USA evidence explorer
-  assets/                          # dashboard CSS, JS and generated JSON
+  index.html                       # static England/USA evidence explorer
+  assets/                          # dashboard UI, regional JSON and facility snapshots
 scripts/
   build_regional_dataset.py        # offline official-source transform
+  build_access_dataset.py          # population, burden and care-access transform
+  download_nppes_pharmacies.py     # bounded official NPPES snapshot client
   build_globe_geography.py         # public display-boundary transform
 src/
+  access_data.py                   # access definitions, normalization and payload build
   connectors.py                    # synthetic/open-data connector boundary
   open_data_mapping.py             # local aggregate schema mapping helpers
   regional_forecasting.py          # auditable short-horizon OLS baseline
@@ -187,6 +199,8 @@ survey and service differences as well as underlying health patterns.
 - [x] Historical health and spending views
 - [x] Transparent short-horizon forecast with rolling diagnostics
 - [x] Evidence-linked, non-causal investigation prompts
+- [x] Population burden, care-capacity comparisons and regional facility directories
+- [x] US primary-care shortage and England pharmacy operating-context signals
 - [x] Static GitHub Pages-compatible explorer
 - [ ] Add Scotland, Wales and Northern Ireland only through definition-preserving views
 - [ ] Add inflation-adjusted spending alongside nominal values

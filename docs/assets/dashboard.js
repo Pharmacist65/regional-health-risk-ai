@@ -10,6 +10,12 @@
     areaCode: null,
     metric: "diabetes",
     atlas: null,
+    facilityCategory: "hospital",
+    facilityCache: new Map(),
+    facilityPayload: null,
+    facilityPayloadKey: null,
+    facilityVisible: 12,
+    facilityRequest: 0,
   };
 
   function byId(id) {
@@ -38,6 +44,26 @@
       currency,
       maximumFractionDigits: 0,
     }).format(value);
+  }
+
+  function formatInteger(value) {
+    if (!Number.isFinite(Number(value))) return "Not available";
+    return Math.round(Number(value)).toLocaleString("en-GB");
+  }
+
+  function normaliseSearch(value) {
+    return String(value || "").trim().toLocaleLowerCase("en");
+  }
+
+  function safeHttpUrl(value) {
+    if (!value) return null;
+    try {
+      const candidate = /^[a-z][a-z0-9+.-]*:/i.test(value) ? value : `https://${value}`;
+      const url = new URL(candidate);
+      return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+    } catch (_error) {
+      return null;
+    }
   }
 
   function currentCountry() {
@@ -845,6 +871,294 @@
     return state.data.sources.find((source) => source.id === sourceId)?.url || "#";
   }
 
+  function renderBurdenWaffle(prevalence, label) {
+    const container = byId("burden-waffle");
+    container.replaceChildren();
+    const bounded = Math.max(0, Math.min(100, Number(prevalence) || 0));
+    const complete = Math.floor(bounded);
+    const hasPartial = bounded - complete >= 0.05;
+    for (let index = 0; index < 100; index += 1) {
+      const dot = document.createElement("i");
+      dot.setAttribute("aria-hidden", "true");
+      if (index < complete) dot.className = "is-active";
+      else if (index === complete && hasPartial) dot.className = "is-partial";
+      container.appendChild(dot);
+    }
+    container.setAttribute(
+      "aria-label",
+      `${label}: ${formatValue(bounded, 1)} highlighted units per 100`
+    );
+  }
+
+  function renderCapacity(access) {
+    const chart = byId("capacity-chart");
+    chart.replaceChildren();
+    access.capacity.forEach((item) => {
+      const value = Number(item.per_100k);
+      const peerMedian = Number(item.peer_median_per_100k);
+      const scaleMax = Math.max(value, peerMedian, 0.1) * 1.16;
+      const difference = peerMedian > 0 ? ((value - peerMedian) / peerMedian) * 100 : null;
+      const row = document.createElement("div");
+      row.className = "capacity-row";
+      row.dataset.key = item.key;
+
+      const label = document.createElement("div");
+      label.className = "capacity-label";
+      const name = document.createElement("strong");
+      name.textContent = item.label;
+      name.title = item.definition;
+      const count = document.createElement("small");
+      count.textContent = `${formatInteger(item.count)} directory records`;
+      label.append(name, count);
+
+      const displayedValue = document.createElement("div");
+      displayedValue.className = "capacity-value";
+      const rate = document.createElement("strong");
+      rate.textContent = formatValue(value, 2);
+      const unit = document.createElement("small");
+      unit.textContent = "per 100k";
+      displayedValue.append(rate, unit);
+
+      const track = document.createElement("div");
+      track.className = "capacity-track";
+      const fill = document.createElement("i");
+      fill.className = "capacity-fill";
+      fill.style.width = `${Math.min(100, (value / scaleMax) * 100).toFixed(1)}%`;
+      const marker = document.createElement("b");
+      marker.className = "capacity-marker";
+      marker.style.left = `${Math.min(100, (peerMedian / scaleMax) * 100).toFixed(1)}%`;
+      track.append(fill, marker);
+
+      const comparison = document.createElement("span");
+      comparison.className = "capacity-compare";
+      comparison.textContent = difference == null
+        ? `Country median ${formatValue(peerMedian, 2)} per 100k`
+        : Math.abs(difference) < 0.05
+          ? `Matches country median (${formatValue(peerMedian, 2)})`
+          : `${Math.abs(difference).toFixed(1)}% ${difference >= 0 ? "above" : "below"} country median (${formatValue(peerMedian, 2)})`;
+      row.append(label, displayedValue, track, comparison);
+      chart.appendChild(row);
+    });
+  }
+
+  function renderAccess(entity, metric) {
+    const access = entity.access;
+    const population = access.population;
+    const burden = metric.burden;
+    byId("access-area-summary").textContent = `Population-normalized disease burden and official care directory signals for ${entity.area_name}.`;
+    byId("population-total").textContent = formatInteger(population.value);
+    byId("population-period").textContent = `${population.year} population estimate`;
+    byId("population-source-link").href = population.source_url;
+    byId("population-source-name").textContent = population.source_name;
+    byId("methods-population-source-link").href = population.source_url;
+
+    if (burden) {
+      byId("burden-label").textContent = burden.label;
+      byId("burden-value").textContent = formatInteger(burden.value);
+      byId("burden-interval").textContent = burden.lower != null
+        && burden.upper != null
+        && Number.isFinite(Number(burden.lower))
+        && Number.isFinite(Number(burden.upper))
+        ? `95% estimate interval: ${formatInteger(burden.lower)} to ${formatInteger(burden.upper)}`
+        : `${burden.population_year} official register count`;
+      byId("burden-rate").textContent = `${formatValue(burden.prevalence, 1)} per 100`;
+      byId("burden-denominator").textContent = `${formatInteger(burden.denominator)} | ${burden.denominator_label} | ${burden.population_year}`;
+      byId("burden-note").textContent = burden.note;
+      renderBurdenWaffle(burden.prevalence, metric.label);
+    } else {
+      byId("burden-label").textContent = "Population burden";
+      byId("burden-value").textContent = "Not available";
+      byId("burden-interval").textContent = "No compatible count denominator";
+      byId("burden-rate").textContent = "Not available";
+      byId("burden-denominator").textContent = "Not available";
+      byId("burden-note").textContent = "The selected measure does not have a compatible population-burden estimate.";
+      renderBurdenWaffle(0, metric.label);
+    }
+
+    renderCapacity(access);
+    const operating = access.operating_context;
+    byId("operating-context-label").textContent = operating.label;
+    byId("operating-context-value").textContent = operating.value != null
+      && Number.isFinite(Number(operating.value))
+      ? `${formatValue(operating.value, 1)}${operating.unit}`
+      : "Not available";
+    byId("operating-context-detail").textContent = operating.detail;
+    byId("capacity-note").textContent = state.data.meta.access_boundary;
+
+    const shortage = byId("shortage-context");
+    if (access.shortage) {
+      shortage.hidden = false;
+      byId("shortage-count").textContent = formatInteger(access.shortage.designation_count);
+      byId("shortage-detail").textContent = `${formatValue(access.shortage.fte_shortage, 1)} practitioner FTE shortage; median HPSA score ${formatValue(access.shortage.median_score, 1)}.`;
+    } else {
+      shortage.hidden = true;
+    }
+
+    const selectedCapacity = access.capacity.find((item) => item.key === state.facilityCategory)
+      || access.capacity[0];
+    byId("facility-method").textContent = `${selectedCapacity.label} | ${selectedCapacity.source_period}`;
+    byId("methods-facility-source-link").href = selectedCapacity.source_url;
+  }
+
+  function resetFacilityView() {
+    state.facilityVisible = 12;
+    state.facilityPayload = null;
+    state.facilityPayloadKey = null;
+    state.facilityRequest += 1;
+    const search = byId("facility-search");
+    if (search) search.value = "";
+  }
+
+  function showFacilityLoading() {
+    const list = byId("facility-list");
+    list.replaceChildren();
+    const message = document.createElement("p");
+    message.className = "facility-empty";
+    message.textContent = "Loading regional directory records...";
+    list.appendChild(message);
+    byId("facility-count").textContent = "Loading";
+    byId("facility-definition").textContent = "";
+    byId("facility-empty").hidden = true;
+    byId("facility-more").hidden = true;
+  }
+
+  function facilityDetail(record) {
+    const lines = [];
+    if (record.phone) lines.push(record.phone);
+    if (record.weekly_hours != null && Number.isFinite(Number(record.weekly_hours))) {
+      lines.push(`${formatValue(record.weekly_hours, 1)} hours / week`);
+    }
+    if (record.emergency_services) lines.push(`Emergency services: ${record.emergency_services}`);
+    if (record.rating != null && Number.isFinite(Number(record.rating))) {
+      lines.push(`Overall rating: ${formatValue(record.rating, 0)}`);
+    }
+    return lines;
+  }
+
+  function renderFacilityDirectory() {
+    const payload = state.facilityPayload;
+    if (!payload) return;
+    const category = payload.categories[state.facilityCategory];
+    if (!category) return;
+    document.querySelectorAll("[data-facility-category]").forEach((button) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.facilityCategory === state.facilityCategory)
+      );
+    });
+    const query = normaliseSearch(byId("facility-search").value);
+    const records = category.records || [];
+    const filtered = query
+      ? records.filter((record) => normaliseSearch([
+          record.name,
+          record.type,
+          record.address,
+          record.locality,
+          record.postal_code,
+        ].join(" ")).includes(query))
+      : records;
+    const visible = filtered.slice(0, state.facilityVisible);
+    byId("facility-count").textContent = query
+      ? `${formatInteger(filtered.length)} matches of ${formatInteger(records.length)}`
+      : `${formatInteger(records.length)} records`;
+    byId("facility-definition").textContent = `${category.definition} ${category.source_period}.`;
+    byId("facility-source-link").href = category.source_url;
+    byId("facility-source-link").textContent = category.source_name;
+    byId("facility-method").textContent = `${category.label} | ${category.source_period}`;
+    byId("methods-facility-source-link").href = category.source_url;
+
+    const list = byId("facility-list");
+    list.replaceChildren();
+    visible.forEach((record) => {
+      const row = document.createElement("article");
+      row.className = "facility-row";
+
+      const identity = document.createElement("div");
+      const name = document.createElement("strong");
+      name.textContent = record.name || "Unnamed directory record";
+      const type = document.createElement("small");
+      type.textContent = record.type || category.label;
+      identity.append(name, type);
+
+      const location = document.createElement("div");
+      const address = document.createElement("span");
+      address.textContent = record.address || "Address not listed";
+      const locality = document.createElement("small");
+      locality.textContent = [record.locality, record.postal_code].filter(Boolean).join(" | ");
+      location.append(address, locality);
+
+      const details = document.createElement("div");
+      const detailLines = facilityDetail(record);
+      if (detailLines.length) {
+        const primary = document.createElement("span");
+        primary.textContent = detailLines[0];
+        details.appendChild(primary);
+        detailLines.slice(1).forEach((detail) => {
+          const line = document.createElement("small");
+          line.textContent = detail;
+          details.appendChild(line);
+        });
+      } else {
+        const sourceId = document.createElement("small");
+        sourceId.textContent = `Directory ID ${record.id}`;
+        details.appendChild(sourceId);
+      }
+
+      const recordUrl = safeHttpUrl(record.url);
+      if (recordUrl) {
+        const link = document.createElement("a");
+        link.href = recordUrl;
+        link.target = "_blank";
+        link.rel = "noreferrer";
+        link.textContent = "View record";
+        row.append(identity, location, details, link);
+      } else {
+        row.append(identity, location, details);
+      }
+      list.appendChild(row);
+    });
+
+    const empty = byId("facility-empty");
+    empty.hidden = filtered.length > 0;
+    const more = byId("facility-more");
+    const remaining = filtered.length - visible.length;
+    more.hidden = remaining <= 0;
+    more.textContent = remaining > 0
+      ? `Show ${formatInteger(Math.min(12, remaining))} more records`
+      : "Show more records";
+  }
+
+  async function loadFacilityDirectory(entity) {
+    const path = entity.access.facility_file;
+    const request = ++state.facilityRequest;
+    if (state.facilityCache.has(path)) {
+      state.facilityPayload = state.facilityCache.get(path);
+      state.facilityPayloadKey = path;
+      renderFacilityDirectory();
+      return;
+    }
+    showFacilityLoading();
+    try {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`Facility request failed with ${response.status}`);
+      const payload = await response.json();
+      state.facilityCache.set(path, payload);
+      if (request !== state.facilityRequest) return;
+      state.facilityPayload = payload;
+      state.facilityPayloadKey = path;
+      renderFacilityDirectory();
+    } catch (error) {
+      if (request !== state.facilityRequest) return;
+      const list = byId("facility-list");
+      list.replaceChildren();
+      byId("facility-count").textContent = "Directory unavailable";
+      byId("facility-definition").textContent = "The regional directory file could not be loaded.";
+      byId("facility-empty").hidden = true;
+      byId("facility-more").hidden = true;
+      console.error(error);
+    }
+  }
+
   function renderContext(entity, metric) {
     const secondaryKey = byId("context-secondary-key");
     const contextChart = byId("context-chart");
@@ -929,6 +1243,8 @@
     }
 
     drawLineChart(byId("trend-chart"), metric.history, forecast ? forecast.points : [], { zeroFloor: true });
+    renderAccess(entity, metric);
+    loadFacilityDirectory(entity);
     renderSpending(entity);
     renderContext(entity, metric);
     renderHypotheses(state.metric, Number(metric.latest_value), peerMedian);
@@ -958,6 +1274,7 @@
       state.atlas = new RegionalAtlas(byId("atlas-globe"), geography, (country, areaCode) => {
         state.country = country;
         state.areaCode = areaCode;
+        resetFacilityView();
         populateControls();
         render();
       });
@@ -968,17 +1285,35 @@
         button.addEventListener("click", () => {
           state.country = button.dataset.country;
           state.areaCode = null;
+          resetFacilityView();
           populateControls();
           render();
         });
       });
       byId("area-select").addEventListener("change", (event) => {
         state.areaCode = event.target.value;
+        resetFacilityView();
         render();
       });
       byId("metric-select").addEventListener("change", (event) => {
         state.metric = event.target.value;
         render();
+      });
+      document.querySelectorAll("[data-facility-category]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.facilityCategory = button.dataset.facilityCategory;
+          state.facilityVisible = 12;
+          byId("facility-search").value = "";
+          renderFacilityDirectory();
+        });
+      });
+      byId("facility-search").addEventListener("input", () => {
+        state.facilityVisible = 12;
+        renderFacilityDirectory();
+      });
+      byId("facility-more").addEventListener("click", () => {
+        state.facilityVisible += 12;
+        renderFacilityDirectory();
       });
       const loadingState = byId("loading-state");
       loadingState.classList.add("is-hidden");

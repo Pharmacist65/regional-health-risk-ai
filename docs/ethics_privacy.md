@@ -1,10 +1,12 @@
 # Ethics and privacy statement
 
-This repository is designed around a strict privacy-first boundary.
+This repository is designed around a strict person-data boundary.
 
 ## Data boundary
 
-The MVP uses synthetic aggregate data. A real implementation should only use anonymised, aggregated prescribing and public health indicators unless a separate governance process approves otherwise.
+The Streamlit MVP uses synthetic aggregate data. The static explorer uses
+official aggregate population-health measures and public organization/facility
+directory records. It does not use patient-level or person-level records.
 
 ## What the system does not do
 
@@ -19,6 +21,8 @@ The MVP uses synthetic aggregate data. A real implementation should only use ano
 - detects area-level patterns
 - ranks areas for preventive awareness workflows
 - supports planning discussions for primary care and community pharmacy stakeholders
+- compares publicly listed care capacity per 100,000 residents
+- provides source-linked hospital, primary-care and pharmacy directories
 
 ## Governance requirements for real-world use
 

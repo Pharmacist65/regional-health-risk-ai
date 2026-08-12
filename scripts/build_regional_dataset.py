@@ -174,6 +174,8 @@ def transform_uk_health(source_path: Path) -> pd.DataFrame:
             "value": selected["value"].round(3),
             "lower_ci": pd.to_numeric(selected["Lower CI 95.0 limit"], errors="coerce").round(3),
             "upper_ci": pd.to_numeric(selected["Upper CI 95.0 limit"], errors="coerce").round(3),
+            "numerator": pd.to_numeric(selected["Count"], errors="coerce").round().astype("Int64"),
+            "denominator": pd.to_numeric(selected["Denominator"], errors="coerce").round().astype("Int64"),
             "unit": "% registered prevalence",
             "population": selected["population"],
             "measure_type": "QOF registered prevalence",
@@ -268,9 +270,27 @@ def transform_us_health(source_path: Path) -> pd.DataFrame:
         selection &= source["stratificationcategory1"].eq("Overall")
     if "stratification1" in source:
         selection &= source["stratification1"].eq("Overall")
-    if "datavaluetype" in source:
-        selection &= source["datavaluetype"].eq("Age-adjusted Prevalence")
-    selected = source[selection].copy()
+    comparable = source[selection].copy()
+    if "datavaluetype" not in comparable:
+        raise ValueError("CDC source must include the datavaluetype column")
+
+    selected = comparable[
+        comparable["datavaluetype"].eq("Age-adjusted Prevalence")
+    ].copy()
+    crude = comparable[comparable["datavaluetype"].eq("Crude Prevalence")].copy()
+    join_keys = ["locationabbr", "questionid", "yearstart"]
+    crude = crude[join_keys + [
+        "datavalue",
+        "lowconfidencelimit",
+        "highconfidencelimit",
+    ]].rename(
+        columns={
+            "datavalue": "crude_value",
+            "lowconfidencelimit": "crude_lower_ci",
+            "highconfidencelimit": "crude_upper_ci",
+        }
+    )
+    selected = selected.merge(crude, on=join_keys, how="left", validate="one_to_one")
     selected["value"] = pd.to_numeric(selected["datavalue"], errors="coerce")
     selected = selected.dropna(subset=["value"])
     selected["metric_key"] = selected["questionid"].map(
@@ -297,6 +317,9 @@ def transform_us_health(source_path: Path) -> pd.DataFrame:
             "value": selected["value"].round(3),
             "lower_ci": pd.to_numeric(selected["lowconfidencelimit"], errors="coerce").round(3),
             "upper_ci": pd.to_numeric(selected["highconfidencelimit"], errors="coerce").round(3),
+            "crude_value": pd.to_numeric(selected["crude_value"], errors="coerce").round(3),
+            "crude_lower_ci": pd.to_numeric(selected["crude_lower_ci"], errors="coerce").round(3),
+            "crude_upper_ci": pd.to_numeric(selected["crude_upper_ci"], errors="coerce").round(3),
             "unit": "% age-adjusted prevalence",
             "population": "Adults aged 18+",
             "measure_type": "BRFSS age-adjusted prevalence",
@@ -383,7 +406,7 @@ def _forecast_records(health: pd.DataFrame) -> pd.DataFrame:
 
 
 def _records(frame: pd.DataFrame, columns: list[str]) -> list[dict[str, object]]:
-    clean = frame[columns].copy()
+    clean = frame[columns].copy().astype(object)
     clean = clean.where(pd.notna(clean), None)
     return clean.to_dict("records")
 
@@ -448,10 +471,33 @@ def _build_dashboard_payload(
                     "latest_period": latest["period"],
                     "history": _records(
                         metric_history,
-                        ["year", "period", "value", "lower_ci", "upper_ci"],
+                        [
+                            column
+                            for column in (
+                                "year",
+                                "period",
+                                "value",
+                                "lower_ci",
+                                "upper_ci",
+                                "numerator",
+                                "denominator",
+                                "crude_value",
+                                "crude_lower_ci",
+                                "crude_upper_ci",
+                            )
+                            if column in metric_history.columns
+                            and metric_history[column].notna().any()
+                        ],
                     ),
                     "forecast": model,
                 }
+                if "numerator" in latest.index and pd.notna(latest["numerator"]):
+                    entity_metrics[metric_key]["latest_numerator"] = int(latest["numerator"])
+                    entity_metrics[metric_key]["latest_denominator"] = int(latest["denominator"])
+                if "crude_value" in latest.index and pd.notna(latest["crude_value"]):
+                    entity_metrics[metric_key]["latest_crude_value"] = latest["crude_value"]
+                    entity_metrics[metric_key]["latest_crude_lower_ci"] = latest["crude_lower_ci"]
+                    entity_metrics[metric_key]["latest_crude_upper_ci"] = latest["crude_upper_ci"]
 
             latitude = None
             longitude = None
@@ -489,7 +535,7 @@ def _build_dashboard_payload(
             )
 
         countries[country] = {
-            "label": "United Kingdom" if country == "UK" else "United States",
+            "label": "England" if country == "UK" else "United States",
             "coverage_note": (
                 "Nine English statistical regions; devolved nations use separate definitions."
                 if country == "UK"
@@ -517,7 +563,7 @@ def _build_dashboard_payload(
                 "hypotheses are not causal findings."
             ),
             "cross_country_warning": (
-                "UK QOF registered prevalence and US BRFSS age-adjusted prevalence use different "
+                "England QOF registered prevalence and US BRFSS age-adjusted prevalence use different "
                 "populations and methods and must not be directly ranked against each other."
             ),
         },
@@ -583,7 +629,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("docs/assets/regional_data.json"),
     )
-    parser.add_argument("--extract-date", default="2026-08-12")
+    parser.add_argument("--extract-date", default="2026-08-13")
     return parser.parse_args()
 
 

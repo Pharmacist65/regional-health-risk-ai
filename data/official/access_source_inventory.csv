@@ -1,0 +1,7 @@
+country,category,definition,record_count,source_name,source_period,source_url
+UK,hospital,CQC-regulated locations with a hospital service type.,1415,Care Quality Commission care directory,12 August 2026,https://www.cqc.org.uk/about-us/transparency/using-cqc-data
+UK,primary_care,CQC-regulated locations with a Doctors/GPs service type.,9534,Care Quality Commission care directory,12 August 2026,https://www.cqc.org.uk/about-us/transparency/using-cqc-data
+UK,pharmacy,Community and Local Pharmaceutical Services entries in the NHS pharmaceutical list.,10395,NHSBSA Consolidated Pharmaceutical List,2026/27 Q1,https://opendata.nhsbsa.net/dataset/consolidated-pharmaceutical-list
+USA,hospital,Hospitals registered with Medicare in CMS Hospital General Information.,5366,CMS Hospital General Information,28 April 2026,https://data.cms.gov/provider-data/dataset/xubh-q36u
+USA,primary_care,Active HRSA service delivery and administrative/service delivery sites.,17515,HRSA Health Center Service Delivery and Look-Alike Sites,12 August 2026,https://data.hrsa.gov/data/download
+USA,pharmacy,Active organization NPIs with the Community/Retail Pharmacy taxonomy and a primary practice location in the state.,87652,CMS National Plan and Provider Enumeration System,13 August 2026 query snapshot,https://npiregistry.cms.hhs.gov/api-page

@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,6 +58,25 @@ def test_health_values_and_confidence_intervals_are_well_formed():
         assert frame["source_url"].str.startswith("https://").all()
 
 
+def test_health_history_preserves_count_and_crude_prevalence_inputs():
+    uk = _read("uk_regional_health_history.csv")
+    us = _read("us_state_health_history.csv")
+
+    assert uk[["numerator", "denominator"]].notna().all().all()
+    assert (uk["numerator"] > 0).all()
+    assert (uk["numerator"] <= uk["denominator"]).all()
+    assert (uk["numerator"] / uk["denominator"] * 100).tolist() == pytest.approx(
+        uk["value"].tolist(), abs=0.02
+    )
+
+    crude = us.dropna(subset=["crude_value", "crude_lower_ci", "crude_upper_ci"])
+    assert len(crude) >= len(us) - 1
+    assert (crude["crude_lower_ci"] <= crude["crude_value"]).all()
+    assert (crude["crude_value"] <= crude["crude_upper_ci"]).all()
+    latest = us.sort_values("year").groupby(["area_code", "metric_key"]).tail(1)
+    assert latest[["crude_value", "crude_lower_ci", "crude_upper_ci"]].notna().all().all()
+
+
 def test_health_history_matches_documented_comparable_periods():
     uk = _read("uk_regional_health_history.csv")
     us = _read("us_state_health_history.csv")
@@ -104,8 +124,9 @@ def test_forecasts_are_short_horizon_bounded_and_auditable():
 def test_dashboard_payload_preserves_boundaries_and_coverage():
     payload = json.loads(DASHBOARD_DATA.read_text(encoding="utf-8"))
 
-    assert payload["meta"]["extract_date"] == "2026-08-12"
-    assert "no patient-level records" in payload["meta"]["data_boundary"].lower()
+    assert payload["meta"]["extract_date"] == "2026-08-13"
+    assert "no patient-level" in payload["meta"]["data_boundary"].lower()
+    assert "person-level records" in payload["meta"]["data_boundary"].lower()
     assert "must not be directly ranked" in payload["meta"]["cross_country_warning"]
     assert len(payload["countries"]["UK"]["entities"]) == 9
     assert len(payload["countries"]["USA"]["entities"]) == 51

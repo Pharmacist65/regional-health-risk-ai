@@ -23,7 +23,9 @@ Publication checks:
 
 - run the full test suite and JSON/JavaScript syntax checks
 - review desktop and mobile rendering
-- verify UK/US controls, geographic hover/click, source links and WebGL fallback
+- verify England/US controls, geographic hover/click, source links and WebGL fallback
+- verify burden calculations, capacity median markers and all facility tabs
+- verify area-specific facility JSON loads, search and record links on GitHub Pages
 - confirm the pinned Globe.GL CDN asset loads and the local dotted fallback is usable
 - confirm all committed records are aggregate and publicly reusable
 - retain the cross-country comparability and non-clinical warnings

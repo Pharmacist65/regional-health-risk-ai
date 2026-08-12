@@ -10,7 +10,7 @@ This project follows a lightweight release-note format rather than strict semant
 
 - Case study document covering product decisions, trade-offs, safety boundaries and interview narrative.
 - Data quality report layer for aggregate input validation summaries in code, dashboard and docs.
-- Static UK/USA regional evidence explorer with a dotted WebGL atlas and local canvas fallback.
+- Static England/USA regional evidence explorer with a dotted WebGL atlas and local canvas fallback.
 - Generalised Natural Earth, US Census and ONS display geography with provenance and integrity tests.
 - Official aggregate England health, ONS context and HM Treasury spending histories.
 - Official aggregate US state health and CMS spending histories.
@@ -19,6 +19,14 @@ This project follows a lightweight release-note format rather than strict semant
 - Source, comparability, forecasting and official-data provenance documentation.
 - Data-integrity tests for geography coverage, duplicate keys, value bounds, spending periods and forecast horizons.
 - A 28-second 1280x720 product walkthrough and social-sharing preview asset.
+- ONS and Census population denominators with exact England QOF register burden
+  and modelled US adult burden intervals.
+- Area-specific hospital, primary-care and pharmacy directories sourced from
+  CQC, NHSBSA, CMS, HRSA and NPPES.
+- Population-normalized care-capacity comparisons, pharmacy/emergency operating
+  context and US primary-care shortage signals.
+- Lazy-loaded facility payloads, directory search and access-layer integrity
+  tests across all 60 geographies.
 
 ### Changed
 
@@ -27,6 +35,8 @@ This project follows a lightweight release-note format rather than strict semant
 - Replaced centroid markers with boundary-aware country, US-state and England-region hover and selection.
 - Made selected indicator and spending coverage periods explicit in the live interface and forecast notes.
 - Documented publisher freshness and the rule against stitching incompatible archived releases.
+- Expanded the static explorer from disease history into a burden, capacity and
+  access planning view while retaining source-specific definitions.
 
 ## v0.1.0 - 2026-05-20
 

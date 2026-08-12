@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="A transparent UK and US regional public-health analytics portfolio project using official aggregate open data."
+      content="Explore official England and US regional health burden, population, spending and healthcare access data."
     />
     <meta name="theme-color" content="#071d18" />
     <link rel="canonical" href="https://pharmacist65.github.io/regional-health-risk-ai/" />
@@ -13,7 +13,7 @@
     <meta property="og:title" content="Regional Preventive Health Analytics" />
     <meta
       property="og:description"
-      content="Explore official aggregate UK and US regional health histories, spending context and transparent short-horizon forecasts."
+      content="Explore official England and US regional health histories, population, spending, healthcare access and transparent short-horizon forecasts."
     />
     <meta property="og:url" content="https://pharmacist65.github.io/regional-health-risk-ai/" />
     <meta
@@ -33,7 +33,7 @@
     <meta name="twitter:title" content="Regional Preventive Health Analytics" />
     <meta
       name="twitter:description"
-      content="Official aggregate UK and US regional health signals with transparent methods."
+      content="Official aggregate England and US regional health, population and healthcare access signals."
     />
     <meta
       name="twitter:image"
@@ -53,11 +53,12 @@
         </span>
       </a>
       <nav class="topnav" aria-label="Project navigation">
+        <a href="#access">Access</a>
         <a href="#analysis">Analysis</a>
         <a href="#methods">Methods</a>
         <a href="https://github.com/Pharmacist65/regional-health-risk-ai" target="_blank" rel="noreferrer">Repository</a>
       </nav>
-      <span class="release-chip">Research preview</span>
+      <span class="release-chip">Population health explorer</span>
     </header>
 
     <main>
@@ -66,7 +67,7 @@
           <div
             id="atlas-globe"
             role="img"
-            aria-label="Interactive dotted globe showing countries, United States states and English regions"
+            aria-label="Interactive dotted globe showing countries, United States states and England regions"
           ></div>
         </div>
         <div class="atlas-grid" aria-hidden="true"></div>
@@ -86,7 +87,7 @@
           <div class="control-group country-group">
             <span class="control-label">Country lens</span>
             <div class="segmented" role="group" aria-label="Country lens">
-              <button type="button" data-country="UK" aria-pressed="true">UK</button>
+              <button type="button" data-country="UK" aria-pressed="true">England</button>
               <button type="button" data-country="USA" aria-pressed="false">USA</button>
             </div>
           </div>
@@ -110,7 +111,7 @@
 
       <section class="metric-strip" aria-label="Selected area summary">
         <article>
-          <span>Latest aggregate value</span>
+          <span>Latest prevalence rate</span>
           <strong id="latest-value">&mdash;</strong>
           <small id="latest-period">&mdash;</small>
         </article>
@@ -129,6 +130,111 @@
           <strong id="spending-value">&mdash;</strong>
           <small id="spending-period">&mdash;</small>
         </article>
+      </section>
+
+      <section class="access-band" id="access" aria-labelledby="access-title">
+        <div class="access-heading">
+          <div>
+            <p class="eyebrow">Population + care infrastructure</p>
+            <h2 id="access-title">Burden and access profile</h2>
+          </div>
+          <p id="access-area-summary" class="section-context"></p>
+        </div>
+
+        <div class="access-overview">
+          <section class="burden-panel" aria-labelledby="burden-title">
+            <div class="access-panel-heading">
+              <div>
+                <span class="access-kicker">Selected indicator</span>
+                <h3 id="burden-title">Population burden</h3>
+              </div>
+              <a id="population-source-link" href="#" target="_blank" rel="noreferrer">Population source</a>
+            </div>
+            <div class="population-line">
+              <span>Resident population</span>
+              <strong id="population-total">&mdash;</strong>
+              <small id="population-period">&mdash;</small>
+            </div>
+            <div class="burden-figure">
+              <div>
+                <span id="burden-label">Recorded burden</span>
+                <strong id="burden-value">&mdash;</strong>
+                <small id="burden-interval"></small>
+              </div>
+              <div
+                id="burden-waffle"
+                class="burden-waffle"
+                role="img"
+                aria-label="Selected prevalence shown as highlighted people per 100"
+              ></div>
+            </div>
+            <dl class="burden-details">
+              <div>
+                <dt>Crude / register rate</dt>
+                <dd id="burden-rate">&mdash;</dd>
+              </div>
+              <div>
+                <dt>Population denominator</dt>
+                <dd id="burden-denominator">&mdash;</dd>
+              </div>
+            </dl>
+            <p id="burden-note" class="access-note"></p>
+          </section>
+
+          <section class="capacity-panel" aria-labelledby="capacity-title">
+            <div class="access-panel-heading">
+              <div>
+                <span class="access-kicker">Same-country comparison</span>
+                <h3 id="capacity-title">Care capacity per 100,000 residents</h3>
+              </div>
+              <div class="capacity-key" aria-label="Capacity chart legend">
+                <span><i></i>Selected area</span>
+                <span><b></b>Peer median</span>
+              </div>
+            </div>
+            <div id="capacity-chart" class="capacity-chart"></div>
+            <div class="access-signals">
+              <article>
+                <span id="operating-context-label">Operating context</span>
+                <strong id="operating-context-value">&mdash;</strong>
+                <small id="operating-context-detail"></small>
+              </article>
+              <article id="shortage-context" hidden>
+                <span>Primary care HPSA designations</span>
+                <strong id="shortage-count">&mdash;</strong>
+                <small id="shortage-detail"></small>
+              </article>
+            </div>
+            <p id="capacity-note" class="access-note"></p>
+          </section>
+        </div>
+
+        <section class="facility-explorer" aria-labelledby="facility-title">
+          <div class="facility-toolbar">
+            <div>
+              <p class="eyebrow">Official directory records</p>
+              <h3 id="facility-title">Regional care directory</h3>
+            </div>
+            <div class="facility-actions">
+              <div class="facility-tabs" role="group" aria-label="Facility category">
+                <button type="button" data-facility-category="hospital" aria-pressed="true">Hospitals</button>
+                <button type="button" data-facility-category="primary_care" aria-pressed="false">Primary care</button>
+                <button type="button" data-facility-category="pharmacy" aria-pressed="false">Pharmacies</button>
+              </div>
+              <label class="facility-search-label">
+                <span class="sr-only">Search facilities</span>
+                <input id="facility-search" type="search" placeholder="Search name, city or postcode" autocomplete="off" />
+              </label>
+            </div>
+          </div>
+          <div class="facility-meta">
+            <p><strong id="facility-count">&mdash;</strong><span id="facility-definition"></span></p>
+            <a id="facility-source-link" href="#" target="_blank" rel="noreferrer">Open official source</a>
+          </div>
+          <div id="facility-list" class="facility-list" aria-live="polite"></div>
+          <p id="facility-empty" class="facility-empty" hidden>No directory records match this search.</p>
+          <button id="facility-more" class="facility-more" type="button" hidden>Show more records</button>
+        </section>
       </section>
 
       <section class="analysis-band" id="analysis">
@@ -241,6 +347,16 @@
             <strong id="spending-source-name">&mdash;</strong>
             <a id="spending-source-link" href="#" target="_blank" rel="noreferrer">Open official source</a>
           </div>
+          <div>
+            <span>Population source</span>
+            <strong id="population-source-name">&mdash;</strong>
+            <a id="methods-population-source-link" href="#" target="_blank" rel="noreferrer">Open official source</a>
+          </div>
+          <div>
+            <span>Facility directory scope</span>
+            <strong id="facility-method">&mdash;</strong>
+            <a id="methods-facility-source-link" href="#" target="_blank" rel="noreferrer">Open official source</a>
+          </div>
         </div>
       </section>
     </main>
@@ -248,13 +364,17 @@
     <footer>
       <div>
         <p>
-          Portfolio research preview. Not affiliated with the NHS, CDC, CMS, or any government agency.
+          Public-health analytics portfolio. Not affiliated with the NHS, CDC, CMS, or any government agency.
           Not medical advice. No patient-level data.
         </p>
         <small>
           Map geometry: Made with Natural Earth; U.S. Census Bureau; Source: Office for National
           Statistics licensed under the Open Government Licence v.3.0. Contains OS data &copy;
           Crown copyright and database right 2024.
+        </small>
+        <small>
+          Care directory includes CQC and NHSBSA information available under the Open Government
+          Licence v3.0; U.S. directory records are sourced from CMS and HRSA public data.
         </small>
       </div>
       <span id="extract-date"></span>
